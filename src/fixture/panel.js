@@ -163,7 +163,32 @@ export async function clearOnboarding(frame) {
       return (button.getAttribute('aria-label') ?? button.textContent ?? '').trim();
     });
 
-    if (acted === null) await frame.press('body', 'Escape').catch(() => {});
+    if (acted === null) {
+      // Nothing matched the label list. Report what the dialog actually holds
+      // rather than a guess about why: the labels differ between the trial and
+      // an enterprise instance, and a list of what is on screen is the only
+      // thing that settles which.
+      const inventory = await dialog.evaluate((node) => ({
+        buttons: [...node.querySelectorAll('button')].map((b) => ({
+          text: (b.getAttribute('aria-label') ?? b.textContent ?? '').trim().slice(0, 60),
+          disabled: b.disabled || b.getAttribute('aria-disabled') === 'true',
+        })),
+        links: [...node.querySelectorAll('a')]
+          .map((a) => (a.textContent ?? '').trim().slice(0, 40))
+          .filter(Boolean),
+        inputs: [...node.querySelectorAll('input,select,textarea')].map(
+          (i) => `${i.tagName.toLowerCase()}${i.type ? `[${i.type}]` : ''}#${i.id || '?'}`,
+        ),
+        text: (node.innerText ?? '').replace(/\s+/g, ' ').trim().slice(0, 300),
+      }));
+      throw new Error(
+        `onboarding dialog ${JSON.stringify(title)} offered no button this knows.\n` +
+          `  buttons: ${JSON.stringify(inventory.buttons)}\n` +
+          `  inputs:  ${JSON.stringify(inventory.inputs)}\n` +
+          `  links:   ${JSON.stringify(inventory.links)}\n` +
+          `  text:    ${inventory.text}`,
+      );
+    }
     await settle(1_500);
 
     // A dialog that is still up did not clear, and saying so beats reporting it

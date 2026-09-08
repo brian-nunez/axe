@@ -15,7 +15,7 @@ EXTENSION_DIR ?= build/axe-extension
 ENV_FILE      ?= .env
 
 # The v0 run: the MCP server that is the fixture, and the graph that drives it.
-TARGET_DIR    ?= fixture/target
+TARGET_DIR    ?= src/fixture/target
 TARGET_PORT   ?= 8731
 AXE_TARGET_URL ?= http://127.0.0.1:$(TARGET_PORT)/
 # The development model is served by Docker Model Runner, which is llama.cpp
@@ -48,6 +48,85 @@ LOAD_ENV = set -a; . ./$(ENV_FILE); set +a;
 
 .DEFAULT_GOAL := help
 
+## setup: install dependencies and check the environment
+setup: install venv env
+	@echo
+	@echo "next: make build"
+
+## build: unpack the pinned extension and build the fixture image
+build: extension image
+	@echo
+	@echo "next: ./axe run <url>   (./axe --help)"
+
+## run: run an audit — pass flags through ARGS, or call ./axe directly
+run:
+	@./axe run $(ARGS)
+
+# v0-scripted: the same run with a scripted leaf in place of the model
+v0-scripted: install extension env venv
+	@$(LOAD_ENV) $(V0_RUN) AXE_SCRIPT=$(TARGET_DIR)/answers.json \
+		PYTHONPATH=src $(UV) run --quiet python -m graph.run --leaf scripted $(V0_ARGS)
+
+# catalog: dump the manual issue catalog as JSON (throwaway)
+catalog: install extension env
+	$(LOAD_ENV) $(NODE) prototype/manual-issue.js --extension=$(EXTENSION_DIR) --catalog $(ISSUE_ARGS)
+
+# igt: drive the Structure IGT end to end against a target page (throwaway)
+igt: install extension env
+	$(LOAD_ENV) $(NODE) prototype/igt-structure.js --extension=$(EXTENSION_DIR) $(IGT_ARGS)
+
+# manual-issue: file manual issues from CSS selectors, end to end (throwaway)
+manual-issue: install extension env
+	$(LOAD_ENV) $(NODE) prototype/manual-issue.js --extension=$(EXTENSION_DIR) $(ISSUE_ARGS)
+
+# ledger-check: prove the ledger-loss check catches a broken ledger (throwaway)
+ledger-check: install extension env
+	$(LOAD_ENV) $(NODE) prototype/ledger-check.js --extension=$(EXTENSION_DIR) $(LEDGER_ARGS)
+
+# crx-latest: download the current extension release, to pin a new version
+crx-latest:
+	$(PY) src/tools/build-axe-extension.py --dest build/crx-check --save-crx build/axe-latest.crx
+	@echo
+	@echo "To pin it: move build/axe-latest.crx into vendor/axe-devtools/ named for its"
+	@echo "version, update crx/version/sha256/retrieved in $(LOCK), then run 'make extension'."
+	@echo "See vendor/axe-devtools/README.md."
+
+# fixture: run the fixture container for a human to watch through noVNC
+fixture: env
+	@test -n "$(TARGET_URL)" || { echo "TARGET_URL=<page state under audit> is required"; exit 1; }
+	docker run --rm -i --env-file $(ENV_FILE) \
+		-e AXE_TARGET_URL=$(TARGET_URL) \
+		-e AXE_IMAGE_REF=$(IMAGE) \
+		-e AXE_VNC_PASSWORD=$${AXE_VNC_PASSWORD:?set AXE_VNC_PASSWORD to open the watch console} \
+		-p 127.0.0.1:6080:6080 \
+		-v $(PWD)/$(RUNS_DIR):/opt/axe/runs \
+		$(IMAGE)
+
+# replay: re-run a recorded fixture — RUN=build/runs/<id> [ARGS="--check|--print|--unit ID"]
+replay:
+	@test -n "$(RUN)" || { echo "RUN=build/runs/<id> is required"; exit 1; }
+	docker/replay.sh $(RUN) $(ARGS)
+
+# serve-target: serve the bundled v0 page state, in the foreground
+serve-target:
+	$(PY) -m http.server $(TARGET_PORT) --directory $(TARGET_DIR)
+
+# mcp-server: run the MCP server alone, on stdio, for a client of your own
+mcp-server: install extension env
+	$(LOAD_ENV) $(NODE) src/fixture/mcp-server.js --extension=$(EXTENSION_DIR) --url=$(AXE_TARGET_URL) $(MCP_ARGS)
+
+# login-headed: same, with a visible browser window
+login-headed: install extension env
+	$(LOAD_ENV) $(NODE) src/fixture/cli.js --extension=$(EXTENSION_DIR) --headed --keep-open
+
+# keepalive: prove the harness sustains the session without touching the panel
+keepalive: install extension env
+	$(LOAD_ENV) $(NODE) src/fixture/cli.js --extension=$(EXTENSION_DIR) --prove-keepalive
+
+# probe: survey what the axe panel offers as automation hooks (throwaway)
+probe: install extension env
+	$(LOAD_ENV) $(NODE) prototype/panel-probe.js --extension=$(EXTENSION_DIR)
+
 ## help: list the available targets
 help:
 	@echo "axedevtools"
@@ -55,28 +134,31 @@ help:
 	@grep -E '^## ' $(MAKEFILE_LIST) | sed 's/## /  make /' | column -t -s ':'
 	@echo
 	@echo "Requires $(ENV_FILE) with AXE_SERVER_URL, AXE_USER_EMAIL_ADDRESS, AXE_USER_PASSWORD."
+	@echo
+	@echo "Everything else is a piece of these three, or a throwaway probe."
+	@echo "Run an audit with ./axe — see ./axe --help."
 
-## install: install pinned node dependencies
+# install: install pinned node dependencies
 install: node_modules
 
 node_modules: package.json
 	$(NPM) install --no-audit --no-fund
 	@touch node_modules
 
-## extension: unpack the pinned axe extension, keeping its store ID
+# extension: unpack the pinned axe extension, keeping its store ID
 extension: $(EXTENSION_DIR)/manifest.json
 
-$(EXTENSION_DIR)/manifest.json: $(LOCK) tools/build-axe-extension.py
-	$(PY) tools/build-axe-extension.py --lock $(LOCK) --dest $(EXTENSION_DIR)
+$(EXTENSION_DIR)/manifest.json: $(LOCK) src/tools/build-axe-extension.py
+	$(PY) src/tools/build-axe-extension.py --lock $(LOCK) --dest $(EXTENSION_DIR)
 
-## env: check the environment the fixture needs
+# env: check the environment the fixture needs
 env:
 	@test -f $(ENV_FILE) || { echo "missing $(ENV_FILE)"; exit 1; }
 	@$(LOAD_ENV) for v in AXE_SERVER_URL AXE_USER_EMAIL_ADDRESS AXE_USER_PASSWORD; do \
 		eval "test -n \"\$$$$v\"" || { echo "$$v is not set in $(ENV_FILE)"; exit 1; }; \
 	done; echo "environment ok"
 
-## model: check the runtime behind AXE_MODEL is up and serving that model
+# model: check the runtime behind AXE_MODEL is up and serving that model
 # Only meaningful for Docker Model Runner, so the check runs only when the
 # kwargs still point at it — overriding AXE_MODEL to a hosted provider silently
 # skips it rather than failing on a runtime that is not in play.
@@ -103,32 +185,16 @@ model:
 	*) echo "model check skipped — AXE_MODEL_KWARGS does not name $(MODEL_RUNNER_URL)";; \
 	esac
 
-## login: launch a browser with the extension signed in, and verify
+# login: launch a browser with the extension signed in, and verify
 login: install extension env
-	$(LOAD_ENV) $(NODE) fixture/cli.js --extension=$(EXTENSION_DIR)
+	$(LOAD_ENV) $(NODE) src/fixture/cli.js --extension=$(EXTENSION_DIR)
 
-## login-headed: same, with a visible browser window
-login-headed: install extension env
-	$(LOAD_ENV) $(NODE) fixture/cli.js --extension=$(EXTENSION_DIR) --headed --keep-open
-
-## keepalive: prove the harness sustains the session without touching the panel
-keepalive: install extension env
-	$(LOAD_ENV) $(NODE) fixture/cli.js --extension=$(EXTENSION_DIR) --prove-keepalive
-
-## venv: sync the Python environment the graph runs in, from uv.lock
+# venv: sync the Python environment the graph runs in, from uv.lock
 venv: .venv/pyvenv.cfg
 
 .venv/pyvenv.cfg: pyproject.toml uv.lock
 	$(UV) sync --quiet
 	@touch .venv/pyvenv.cfg
-
-## serve-target: serve the bundled v0 page state, in the foreground
-serve-target:
-	$(PY) -m http.server $(TARGET_PORT) --directory $(TARGET_DIR)
-
-## mcp-server: run the MCP server alone, on stdio, for a client of your own
-mcp-server: install extension env
-	$(LOAD_ENV) $(NODE) fixture/mcp-server.js --extension=$(EXTENSION_DIR) --url=$(AXE_TARGET_URL) $(MCP_ARGS)
 
 # Both v0 targets serve the bundled page state for the life of the run and take
 # it down afterwards, so the proof is one command. Point AXE_TARGET_URL at a real
@@ -138,70 +204,26 @@ V0_RUN = \
 	server=$$!; trap "kill $$server 2>/dev/null" EXIT INT TERM; sleep 1; \
 	AXE_EXTENSION_DIR=$(EXTENSION_DIR) AXE_TARGET_URL=$(AXE_TARGET_URL)
 
-## v0-trace: the same run, printing the leaf's whole conversation
-# The system prompt is the skill file, so this is long by design — it is the
-# only view of what the model was actually given versus what it answered.
-v0-trace: install extension env venv model
-	@$(LOAD_ENV) AXE_TRACE=1 AXE_MODEL=$(AXE_MODEL) AXE_MODEL_KWARGS='$(AXE_MODEL_KWARGS)' \
-		$(V0_RUN) $(UV) run --quiet python -m graph.run $(V0_ARGS)
-
-## v0-docker: the same run, with the fixture as the built container
+# v0-docker: the same run, with the fixture as the built container
 v0-docker: image env venv model
 	@$(LOAD_ENV) AXE_FIXTURE=docker AXE_IMAGE=$(IMAGE) \
 		AXE_VNC_PASSWORD="$$AXE_VNC_PASSWORD" \
 		AXE_TARGET_URL=$(AXE_TARGET_URL) \
 		AXE_MODEL=$(AXE_MODEL) AXE_MODEL_KWARGS='$(AXE_MODEL_KWARGS)' \
-		$(UV) run --quiet python -m graph.run $(V0_ARGS)
+		PYTHONPATH=src $(UV) run --quiet python -m graph.run $(V0_ARGS)
 
-## v0: run both v0 units end to end against AXE_MODEL, and print the draft
+# v0: run both v0 units end to end against AXE_MODEL, and print the draft
 v0: install extension env venv model
 	@$(LOAD_ENV) $(V0_RUN) AXE_MODEL=$(AXE_MODEL) AXE_MODEL_KWARGS='$(AXE_MODEL_KWARGS)' \
-		$(UV) run --quiet python -m graph.run $(V0_ARGS)
+		PYTHONPATH=src $(UV) run --quiet python -m graph.run $(V0_ARGS)
 
-## v0-scripted: the same run with a scripted leaf in place of the model
-v0-scripted: install extension env venv
-	@$(LOAD_ENV) $(V0_RUN) AXE_SCRIPT=$(TARGET_DIR)/answers.json \
-		$(UV) run --quiet python -m graph.run --leaf scripted $(V0_ARGS)
-
-## probe: survey what the axe panel offers as automation hooks (throwaway)
-probe: install extension env
-	$(LOAD_ENV) $(NODE) prototype/panel-probe.js --extension=$(EXTENSION_DIR)
-
-## probe-headed: same, with a visible browser window
-probe-headed: install extension env
-	$(LOAD_ENV) $(NODE) prototype/panel-probe.js --extension=$(EXTENSION_DIR) --headed
-
-## igt: drive the Structure IGT end to end against a target page (throwaway)
-igt: install extension env
-	$(LOAD_ENV) $(NODE) prototype/igt-structure.js --extension=$(EXTENSION_DIR) $(IGT_ARGS)
-
-## manual-issue: file manual issues from CSS selectors, end to end (throwaway)
-manual-issue: install extension env
-	$(LOAD_ENV) $(NODE) prototype/manual-issue.js --extension=$(EXTENSION_DIR) $(ISSUE_ARGS)
-
-## catalog: dump the manual issue catalog as JSON (throwaway)
-catalog: install extension env
-	$(LOAD_ENV) $(NODE) prototype/manual-issue.js --extension=$(EXTENSION_DIR) --catalog $(ISSUE_ARGS)
-
-## ledger-check: prove the ledger-loss check catches a broken ledger (throwaway)
-ledger-check: install extension env
-	$(LOAD_ENV) $(NODE) prototype/ledger-check.js --extension=$(EXTENSION_DIR) $(LEDGER_ARGS)
-
-## check-mapping: verify reference/issue-mapping.json against the checklist, the catalog dump and skills/
+# check-mapping: verify reference/issue-mapping.json against the checklist, the catalog dump and skills/
 check-mapping:
-	$(NODE) tools/check-issue-mapping.mjs
+	$(NODE) src/tools/check-issue-mapping.mjs
 
-## crx-latest: download the current extension release, to pin a new version
-crx-latest:
-	$(PY) tools/build-axe-extension.py --dest build/crx-check --save-crx build/axe-latest.crx
-	@echo
-	@echo "To pin it: move build/axe-latest.crx into vendor/axe-devtools/ named for its"
-	@echo "version, update crx/version/sha256/retrieved in $(LOCK), then run 'make extension'."
-	@echo "See vendor/axe-devtools/README.md."
-
-## image: build the fixture container
+# image: build the fixture container
 image:
-	docker build -f docker/Dockerfile \
+	docker build -f Dockerfile \
 		--build-arg AXE_SOURCE_REVISION=$$(git rev-parse --short HEAD 2>/dev/null || echo unknown) \
 		--build-arg HTTP_PROXY="$$HTTP_PROXY" \
 		--build-arg HTTPS_PROXY="$$HTTPS_PROXY" \
@@ -210,27 +232,16 @@ image:
 		--build-arg NODE_EXTRA_CA_CERTS="$$NODE_EXTRA_CA_CERTS" \
 		-t $(IMAGE) .
 
-## fixture: run the fixture container for a human to watch through noVNC
-fixture: env
-	@test -n "$(TARGET_URL)" || { echo "TARGET_URL=<page state under audit> is required"; exit 1; }
-	docker run --rm -i --env-file $(ENV_FILE) \
-		-e AXE_TARGET_URL=$(TARGET_URL) \
-		-e AXE_IMAGE_REF=$(IMAGE) \
-		-e AXE_VNC_PASSWORD=$${AXE_VNC_PASSWORD:?set AXE_VNC_PASSWORD to open the watch console} \
-		-p 127.0.0.1:6080:6080 \
-		-v $(PWD)/$(RUNS_DIR):/opt/axe/runs \
-		$(IMAGE)
-
-## replay: re-run a recorded fixture — RUN=build/runs/<id> [ARGS="--check|--print|--unit ID"]
-replay:
-	@test -n "$(RUN)" || { echo "RUN=build/runs/<id> is required"; exit 1; }
-	docker/replay.sh $(RUN) $(ARGS)
-
-## clean: remove build output
+# clean: remove build output
 clean:
 	rm -rf build
 
-## distclean: remove build output and installed dependencies
+# runs: keep the five most recent run records, delete the rest
+runs:
+	@ls -td build/run/*/ 2>/dev/null | tail -n +6 | xargs rm -rf 2>/dev/null || true
+	@echo "kept $$(ls build/run 2>/dev/null | wc -l | tr -d ' ') run record(s)"
+
+# distclean: remove build output and installed dependencies
 distclean: clean
 	rm -rf node_modules
 

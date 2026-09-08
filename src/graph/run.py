@@ -35,7 +35,8 @@ from .scripted import scripted_thinker
 from .state import RunState, SubAgentReport, UnitBrief
 from .units import v0_queue, validate_bindings
 
-REPO = Path(__file__).resolve().parent.parent
+# src/graph/<file> -> the repository root is two levels up.
+REPO = Path(__file__).resolve().parents[2]
 
 
 class Runtime:

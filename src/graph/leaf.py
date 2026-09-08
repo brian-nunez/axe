@@ -253,16 +253,23 @@ def build_leaf(
                 _block(f"{kind}", message.content, say)
         reply = await think(state["messages"])
         step = state["steps"] + 1
+
         if TRACE:
-            if reply.content:
-                _block(f"AI (turn {step})", reply.content, say)
+            # Always, not only when there is content. A turn that emits nothing
+            # but tool calls is still an AI message, and a turn that emits
+            # neither is the failure worth seeing most.
+            body = reply.content if reply.content else "(no content)"
+            if reply.tool_calls:
+                names = ", ".join(c["name"] for c in reply.tool_calls)
+                body = f"{body}\n\ntool_calls: {names}"
+            _block(f"AI (turn {step})", body, say)
             for call in reply.tool_calls:
                 _block(
                     f"TOOL CALL (turn {step}) — {call['name']}",
                     call.get("args", {}),
                     say,
                 )
-        if reply.tool_calls:
+        elif reply.tool_calls:
             for call in reply.tool_calls:
                 say(f"      {step:>2}. {_call_line(call['name'], call.get('args', {}))}")
         else:

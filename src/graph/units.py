@@ -20,7 +20,8 @@ import yaml
 
 from .state import UnitBrief
 
-REPO = Path(__file__).resolve().parent.parent
+# src/graph/<file> -> the repository root is two levels up.
+REPO = Path(__file__).resolve().parents[2]
 SKILLS = REPO / "skills"
 
 # `finish_unit` is provided by the leaf graph, not by the MCP server. Resolving

@@ -25,7 +25,8 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative } from 'node:path';
 
-const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+// src/tools/<file> -> the repository root is two levels up.
+const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const CHECKLIST = join(root, 'reference/page-state-tests.json');
 const MAPPING = join(root, 'reference/issue-mapping.json');
 const CATALOG = join(root, 'build/manual-issue/catalog.json');

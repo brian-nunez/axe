@@ -22,6 +22,8 @@ dependencies = [
 ]
 
 [tool.uv]
+# `python -m graph.run` resolves because src/ is on the path.
+
 # `graph/` is run as a module from the repo root, not installed. Without this
 # uv looks for a build backend and fails on a project that ships no package.
 package = false

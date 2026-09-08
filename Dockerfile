@@ -76,14 +76,14 @@ RUN npm ci --omit=dev --no-audit --no-fund
 # version against the lock, recovers the publisher key from the CRX3 header and
 # injects it, which is what keeps the loaded ID lhdoppojpmngadmnindnejefpokejbdd.
 # Without that ID, managed policy silently does nothing.
-COPY tools/ ./tools/
+COPY src/tools/ ./tools/
 COPY vendor/ ./vendor/
 RUN uv run --no-project --python python3 tools/build-axe-extension.py \
         --lock vendor/axe-devtools/axe-extension.lock.json \
         --dest "${AXE_EXTENSION_DIR}" \
     && test -s "${AXE_EXTENSION_DIR}/schema.json"
 
-COPY fixture/ ./fixture/
+COPY src/fixture/ ./fixture/
 COPY reference/ ./reference/
 COPY docker/render-policy.py docker/record-provenance.py \
      docker/entrypoint.sh docker/vnc-event.sh /opt/axe/docker/

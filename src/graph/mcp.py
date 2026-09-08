@@ -19,7 +19,8 @@ from langchain_core.tools import BaseTool
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_mcp_adapters.tools import load_mcp_tools
 
-REPO = Path(__file__).resolve().parent.parent
+# src/graph/<file> -> the repository root is two levels up.
+REPO = Path(__file__).resolve().parents[2]
 
 
 def server_command() -> dict[str, Any]:

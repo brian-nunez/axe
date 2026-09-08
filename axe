@@ -1,0 +1,134 @@
+#!/usr/bin/env -S uv run --no-project --quiet python
+"""axe — audit one page state.
+
+    axe https://example.com/page          run it
+    axe https://example.com/page --watch  run it, and watch the browser
+    axe https://example.com/page --debug  run it, and print everything
+    axe doctor                            check the setup
+
+Three flags. Everything else this needs to decide, it decides.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import secrets
+import shutil
+import subprocess
+import sys
+import urllib.request
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent
+MODEL_RUNNER = "http://localhost:12434/engines/v1"
+DEFAULT_MODEL = "docker.io/ai/gemma4:e2b"
+PORT = 6080
+
+HOSTED = ("anthropic:", "openai:", "google_genai:", "google_vertexai:", "bedrock:", "groq:")
+
+
+def paint(text: str, code: str) -> str:
+    return text if not sys.stdout.isatty() else f"\033[{code}m{text}\033[0m"
+
+
+def served() -> list[str]:
+    try:
+        with urllib.request.urlopen(f"{MODEL_RUNNER}/models", timeout=3) as response:
+            return [m["id"] for m in json.load(response).get("data", [])]
+    except Exception:
+        return []
+
+
+def audit(args: argparse.Namespace) -> int:
+    env: dict[str, str] = {"AXE_TARGET_URL": args.url}
+
+    # A hosted model needs no endpoint; a local one is an OpenAI-compatible API
+    # with the base URL moved, and its provider travels in the kwargs because a
+    # model id already contains a colon.
+    env["AXE_MODEL"] = args.model
+    env["AXE_MODEL_KWARGS"] = (
+        "{}"
+        if args.model.startswith(HOSTED)
+        else json.dumps(
+            {"model_provider": "openai", "base_url": MODEL_RUNNER, "api_key": "docker"}
+        )
+    )
+
+    if args.debug:
+        env["AXE_TRACE"] = "1"
+
+    if args.watch:
+        password = secrets.token_urlsafe(9)
+        env["AXE_VNC_PASSWORD"] = password
+        env["AXE_VNC_PORT"] = str(PORT)
+        print(paint(f"  watch  http://127.0.0.1:{PORT}", "32"))
+        print(paint(f"  password  {password}", "32"))
+        print()
+
+    return subprocess.call(
+        ["make", "v0-docker" if args.watch else "v0"],
+        cwd=REPO,
+        env={**os.environ, **env},
+    )
+
+
+def doctor(_: argparse.Namespace) -> int:
+    ok = True
+
+    def row(good: bool, name: str, detail: str) -> None:
+        nonlocal ok
+        mark = paint("ok  ", "32") if good else paint("MISS", "31")
+        print(f"{mark}  {name:<10} {paint(detail, '2')}")
+        ok &= good
+
+    for tool in ("uv", "node", "docker", "make"):
+        found = shutil.which(tool)
+        row(bool(found), tool, found or "not on PATH")
+
+    env_file = REPO / ".env"
+    keys = ("AXE_SERVER_URL", "AXE_USER_EMAIL_ADDRESS", "AXE_USER_PASSWORD")
+    if not env_file.exists():
+        row(False, ".env", "create it — see MIGRATION.md")
+    else:
+        text = env_file.read_text()
+        missing = [k for k in keys if f"{k}=" not in text]
+        server = next(
+            (l.split("=", 1)[1].strip() for l in text.splitlines() if l.startswith(keys[0] + "=")),
+            "",
+        )
+        row(not missing, ".env", ", ".join(missing) if missing else server)
+
+    built = (REPO / "build" / "axe-extension" / "manifest.json").exists()
+    row(built, "extension", "built" if built else "run: make build")
+
+    models = served()
+    row(bool(models), "model", ", ".join(models) if models else f"nothing at {MODEL_RUNNER}")
+
+    if not ok:
+        print()
+        print("fix the above, then:  make setup && make build")
+    return 0 if ok else 1
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        prog="axe",
+        usage="axe <url> [--watch] [--debug] [--model NAME]",
+        description="Audit one page state for accessibility.",
+        epilog="  axe doctor    check the setup\n"
+        f"  default model: {DEFAULT_MODEL}",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument("url", help="page state to audit, or the word 'doctor'")
+    parser.add_argument("--watch", action="store_true", help="watch the browser in a web console")
+    parser.add_argument("--debug", action="store_true", help="print the agent's whole conversation")
+    parser.add_argument("--model", default=DEFAULT_MODEL, help=argparse.SUPPRESS)
+    args = parser.parse_args()
+
+    return doctor(args) if args.url == "doctor" else audit(args)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

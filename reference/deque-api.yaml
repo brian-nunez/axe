@@ -1,0 +1,466 @@
+openapi: 3.1.0
+
+info:
+  title: axe DevTools Server — the endpoints this project uses
+  version: "1.0.0"
+  summary: Every Deque HTTP call the fixture makes, and why it makes it.
+  description: |
+    **None of this is published by Deque.** It was recovered by reading the
+    shipped extension bundle and watching what it calls, then confirmed against
+    a live instance. Deque documents their *client* products; the server behind
+    them has no public API reference. That is the reason this file exists: the
+    knowledge is expensive to re-derive and easy to lose.
+
+    ## Why the project talks to this server at all
+
+    The governing constraint is that the agent drives Deque's extension and
+    keeps no accessibility rules of its own. So almost everything happens
+    through the panel UI, not through HTTP. These endpoints cover the two jobs
+    the panel cannot do:
+
+    1. **Start a session without a human.** The extension's own login is an
+       authorization-code redirect through a Keycloak form. A container cannot
+       fill in a form, so the fixture mints the same session with a direct grant
+       and writes it where the extension looks.
+    2. **Read the saved test without touching the panel.** The saved test is the
+       only record of findings until submission. Reading it through the panel
+       means moving the panel, and moving the panel is how a run loses the view
+       a sub-agent is part-way through. These reads are out of band.
+
+    ## The trap that costs an afternoon
+
+    `Accept: application/json` is **not optional**. The server is a single-page
+    app, and it answers any unrouted path with `200 text/html` — the SPA shell.
+    A check that omits the header reads success out of a web page. Treat a
+    non-JSON body as a bug in the path, never as a missing resource: the two
+    must not collapse into one verdict.
+
+    ## Authentication
+
+    Every call but `/api/sso-config` takes the extension's own bearer token.
+    That token is a Keycloak access token, obtained by the direct grant below
+    and refreshed on a timer for the life of a run.
+
+servers:
+  - url: "{axeServerUrl}"
+    description: |
+      The axe DevTools Server. On-premises this is your own host; on SaaS it is
+      `https://axe.deque.com`. The distinction matters beyond routing — the
+      extension short-circuits some capability reporting for the SaaS hostname,
+      so a measurement taken against SaaS does not describe an on-prem instance.
+    variables:
+      axeServerUrl:
+        default: https://axe.deque.com
+
+security:
+  - extensionBearer: []
+
+tags:
+  - name: session
+    description: Getting a signed-in browser without a human at the keyboard.
+  - name: ledger
+    description: |
+      Reading the saved test — what this project calls the ledger — out of band.
+      Every IGT answer and manual issue accumulates there, and it is what
+      travels to the auditor.
+
+paths:
+  /api/sso-config:
+    get:
+      tags: [session]
+      operationId: getSsoConfig
+      summary: Discover where this instance's Keycloak lives.
+      description: |
+        **Why we use it.** The token endpoint is not a constant. Each instance
+        runs its own Keycloak with its own realm and client id, so the fixture
+        discovers them at runtime rather than carrying a hardcoded URL that
+        would be wrong on every instance but one. This is the first call of any
+        run and the only unauthenticated one.
+
+        The extension builds exactly the same object and stores it under the
+        `sso-config` key in `chrome.storage.local`. The fixture writes the same
+        shape, because the extension's own refresh routine reads `tokenUrl` and
+        `publicClientId` back out of it — **a session seeded without this record
+        cannot renew itself.**
+      security: []
+      responses:
+        "200":
+          description: The realm this instance authenticates against.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [url, realm, publicClientId]
+                properties:
+                  url:
+                    type: string
+                    format: uri
+                    description: |
+                      Keycloak's base URL. The OIDC prefix is built from it as
+                      `{url}/auth/realms/{realm}/protocol/openid-connect` — note
+                      the `/auth` segment, which older Keycloak keeps and newer
+                      quarkus builds drop.
+                    example: https://axe.deque.com/auth
+                  realm:
+                    type: string
+                    description: Keycloak realm holding the accounts.
+                    example: axe
+                  publicClientId:
+                    type: string
+                    description: |
+                      The public OIDC client the extension itself uses. The
+                      fixture mints against this same client deliberately: a
+                      token from a different client carries a different `azp`,
+                      and the server may not accept it as a saved-test owner.
+                    example: axepro-public
+                  mcpClientId:
+                    type: string
+                    description: Client id for Deque's own MCP server. Unused here.
+
+  /auth/realms/{realm}/protocol/openid-connect/token:
+    servers:
+      - url: "{keycloakUrl}"
+        description: Keycloak, from `url` in the sso-config response.
+        variables:
+          keycloakUrl:
+            default: https://axe.deque.com/auth
+    post:
+      tags: [session]
+      operationId: mintOrRefreshToken
+      summary: Mint a session, and keep it alive.
+      description: |
+        **Why we use it — minting.** The extension's own sign-in is an
+        authorization-code redirect through a Keycloak HTML form. Driving that
+        form in a container is the most brittle part of fixture setup and buys
+        nothing: the same public client accepts a direct grant, and once the
+        records are in `chrome.storage.local` the extension cannot tell the
+        difference. Measured and confirmed on both SaaS and on-prem.
+
+        **Why we use it — refreshing.** The access token outlives a short run
+        and not a long one, and the extension renews itself **only when the
+        DevTools panel mounts**. Re-mounting the panel mid-run is not available
+        to us: it destroys the ledger. So the harness refreshes out of band on a
+        timer, writes the result back into `chrome.storage.local`, and announces
+        it on the extension's own `auth` BroadcastChannel so a mounted panel
+        picks up the new token without being touched.
+
+        Direct Access Grants must be enabled on the public client. It is the
+        default for new Keycloak clients, but an enterprise realm may have
+        turned it off — the failure is `invalid_grant` or `unauthorized_client`.
+      security: []
+      parameters:
+        - name: realm
+          in: path
+          required: true
+          schema: { type: string }
+          description: From `realm` in the sso-config response.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              oneOf:
+                - title: Direct grant — mint a new session
+                  type: object
+                  required: [grant_type, client_id, username, password]
+                  properties:
+                    grant_type: { type: string, const: password }
+                    client_id:
+                      type: string
+                      description: "`publicClientId` from sso-config. Not a client of our own."
+                    username:
+                      type: string
+                      description: "`AXE_USER_EMAIL_ADDRESS`. Prefer a provisioned service identity over a person: a run holds a live session and a refresh token good for weeks."
+                    password:
+                      type: string
+                      format: password
+                      description: "`AXE_USER_PASSWORD`."
+                    scope: { type: string, default: openid }
+                - title: Refresh — keep the session alive
+                  type: object
+                  required: [grant_type, client_id, refresh_token]
+                  properties:
+                    grant_type: { type: string, const: refresh_token }
+                    client_id: { type: string }
+                    refresh_token:
+                      type: string
+                      description: |
+                        From the previous response. If the realm enables
+                        *Revoke Refresh Token*, each refresh rotates it — always
+                        store the newest, or the next renewal fails.
+      responses:
+        "200":
+          description: A session the extension will accept.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Session" }
+        "401":
+          description: Bad credentials, or Direct Access Grants disabled on the client.
+
+  /api/logged-in:
+    get:
+      tags: [session]
+      operationId: getLoggedInUser
+      summary: The user record the extension keeps beside the session.
+      description: |
+        **Why we use it.** Seeding a token alone is not enough. The extension
+        stores a `user` record next to `session`, and a panel that finds a token
+        but no user does not behave as signed in. The fixture reads it from the
+        same endpoint the extension does, so what lands in storage is what the
+        extension would have written itself.
+
+        Its `id` is also the `{userId}` the saved-tests listing needs.
+      responses:
+        "200":
+          description: The account behind the bearer token.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Account id. Used as `{userId}` below.
+
+  /api/users/{userId}/tests:
+    get:
+      tags: [ledger]
+      operationId: listSavedTests
+      summary: Every saved test this account owns, newest first.
+      description: |
+        **Why we use it.** To learn the id of the test the fixture has just
+        saved. The panel never displays it, and the name is not unique — the
+        same fixture run twice produces two tests with the same name. So the
+        fixture saves, then lists, then matches on name and recency to find the
+        id it will hold for the rest of the run.
+
+        Everything else the run does with the ledger is keyed on that id.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema: { type: string }
+          description: From `id` on `/api/logged-in`.
+        - name: limit
+          in: query
+          schema: { type: integer, default: 25 }
+          description: |
+            Newest first, so a small limit is enough to find a test saved
+            seconds ago. Raising it costs bytes on a call made once per run.
+      responses:
+        "200":
+          description: Saved tests, newest first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/SavedTest" }
+
+  /api/tests/{testId}:
+    get:
+      tags: [ledger]
+      operationId: getSavedTest
+      summary: Does the run's saved test still exist?
+      description: |
+        **Why we use it.** This is the check that catches the failure the whole
+        ledger design exists for. A panel can look completely healthy — right
+        test name, right issue counts, a working *Add Manual Issue* form — while
+        the test it names has been deleted server-side. Every panel-side signal
+        reads green. Only this call sees it.
+
+        Called at every gate between sub-agents. A `404` or `is_active: false`
+        aborts the run rather than continuing to file into nothing.
+      parameters:
+        - name: testId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: The test.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SavedTest" }
+        "404":
+          description: |
+            The test is gone. Not a transient — the run aborts and emits no
+            draft, because a silently under-reporting draft that a human
+            reviews believing it thorough is worse than none.
+
+  /api/tests/{testId}/issues:
+    get:
+      tags: [ledger]
+      operationId: listTestIssues
+      summary: Every issue on the saved test, automatic and human alike.
+      description: |
+        **Why we use it.** Two jobs. It is the count the ledger check compares
+        against its baseline — issues going *down* means work has been lost.
+        And it is how the graph reconciles what a sub-agent *claimed* against
+        what was actually filed: the coverage half of a report comes from the
+        model, the ledger half comes from here, and a claim with no matching
+        issue is stripped from the draft.
+
+        **`is_manual` does not mean "added by hand".** It is true for everything
+        a person contributed, which is both the IGT path and the manual path at
+        once. `manifest_guide` separates them — `null` for a manual issue,
+        the guide name for one an IGT produced. Counting them apart matters
+        because a run can lose one path's work and keep the other's, and a
+        single total hides exactly that.
+      parameters:
+        - name: testId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: All issues on the test.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Issue" }
+
+  /api/tests/{testId}/manifests:
+    get:
+      tags: [ledger]
+      operationId: getIgtManifests
+      summary: The per-IGT run record.
+      description: |
+        **Why we use it.** To know whether a guided test actually finished, and
+        what it produced, without reading the panel. Keyed by guide name, each
+        key holding one record per run of that guide.
+
+        **Read `completed` with suspicion.** *Save progress & quit* marks a
+        guide as run, so an IGT the agent abandoned appears here as completed
+        with zero issues — which to a reviewer reads as "checked, and clean".
+        That is a known disagreement between this record and the truth, and it
+        is why the run's own draft reports the unit's disposition separately
+        rather than trusting this field.
+      parameters:
+        - name: testId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: |
+            IGT runs. Shape varies: an array on some versions, an object keyed
+            by guide name on others. Both are handled.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: array
+                    items: { $ref: "#/components/schemas/IgtRun" }
+                  - type: object
+                    additionalProperties:
+                      oneOf:
+                        - { $ref: "#/components/schemas/IgtRun" }
+                        - type: array
+                          items: { $ref: "#/components/schemas/IgtRun" }
+
+  /api/internal/server-info:
+    get:
+      tags: [session]
+      operationId: getServerInfo
+      summary: What this instance actually has enabled.
+      description: |
+        **Why we use it.** To confirm capability rather than assume it. The
+        design assumes ML features and advanced rules are absent; this is where
+        that is checked instead of believed. It is also the fastest way to tell
+        an on-prem instance from SaaS, which matters because a measurement taken
+        against one does not describe the other.
+
+        Not called during a run — it is a setup and migration check.
+      responses:
+        "200":
+          description: Instance capability.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  isOnPrem: { type: boolean }
+                  mlServiceEnabled:
+                    type: boolean
+                    description: Machine-learning features. Outside our licence.
+                  screenshotsEnabled:
+                    type: boolean
+                    description: Whether filed issues may carry screenshots.
+                  billingServiceEnabled: { type: boolean }
+                  productInfo: { type: object, additionalProperties: true }
+
+components:
+  securitySchemes:
+    extensionBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        The extension's own Keycloak access token — the same one seeded into
+        `chrome.storage.local`. The harness already holds it for the keepalive,
+        so the ledger reads cost no extra authentication.
+
+  schemas:
+    Session:
+      type: object
+      description: |
+        Written verbatim into `chrome.storage.local` under `session`. The
+        extension reads it back, so the shape is the extension's, not ours.
+      properties:
+        access_token: { type: string, description: "JWT, `typ=Bearer`." }
+        refresh_token: { type: string, description: "JWT, `typ=Refresh`." }
+        id_token: { type: string }
+        expires_in: { type: integer, description: Seconds. Measured at 5400 on one instance; do not hardcode. }
+        refresh_expires_in: { type: integer }
+        scope: { type: string }
+        token_type: { type: string }
+        session_state: { type: string }
+
+    SavedTest:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name:
+          type: string
+          description: Not unique. Two runs of the same fixture produce the same name.
+        url: { type: string, format: uri, description: The page state audited. }
+        is_active:
+          type: boolean
+          description: "`false` counts as gone: the run aborts."
+        created_at: { type: string, format: date-time }
+
+    Issue:
+      type: object
+      properties:
+        id: { type: string }
+        is_manual:
+          type: boolean
+          description: |
+            True for anything a person contributed — **both** manual issues and
+            IGT findings. Not "added through Add Manual Issue".
+        manifest_guide:
+          type: [string, "null"]
+          description: |
+            The guide that produced it, or `null` for a manual issue. This is
+            the field that actually separates the two paths.
+        impact: { type: string }
+        selector:
+          type: string
+          description: |
+            The extension's own CSS selector for the element, e.g.
+            `body > video#briefing:nth-of-type(1)`. A useful symmetry: a
+            selector goes in when filing, a selector comes back out, so a filed
+            issue can be matched to the element a skill file named.
+
+    IgtRun:
+      type: object
+      properties:
+        guide: { type: string, example: structure }
+        runs: { type: integer }
+        issues: { type: integer }
+        completed:
+          type: boolean
+          description: |
+            True after *Save progress & quit* as well as after a real finish.
+            Not evidence that a guided test was completed.

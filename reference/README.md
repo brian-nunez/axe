@@ -89,3 +89,25 @@ catalog entry that some mapping branch resolves to and that the mapping resolves
 for that file's own page state test, and every audit trail must name a row that
 exists at the confidence it claims. So a skill file cannot quietly file a valid
 entry the mapping never sanctioned, and a citation cannot rot when a row moves.
+
+## `deque-api.yaml`
+
+OpenAPI 3.1 for every Deque HTTP endpoint the fixture calls — eight of them,
+across getting a session and reading the saved test.
+
+**Deque publishes none of this.** It was recovered by reading the shipped
+extension bundle and watching what it calls, then confirmed against a live
+instance. That is the reason the file exists: the knowledge is expensive to
+re-derive and easy to lose, and nothing upstream will remind us of it.
+
+Every operation carries a **why** as well as a what — which failure it catches,
+or which thing the panel cannot do. Three traps are recorded there rather than
+in anyone's memory:
+
+- **`Accept: application/json` is not optional.** The SPA answers `200
+  text/html` to any unrouted path, so a check without it reads success out of a
+  web page.
+- **`is_manual` does not mean "added by hand".** It covers both human paths;
+  `manifest_guide` is what separates a manual issue from an IGT finding.
+- **`completed` on an IGT run is not evidence of completion.** *Save progress &
+  quit* sets it, so an abandoned guided test reads as finished with zero issues.

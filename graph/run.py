@@ -76,6 +76,7 @@ class Runtime:
                 tools,
                 brief.max_steps,
                 checkpointer=self.checkpointer,
+                log=self.log,
             )
         return self._leaves[signature]
 

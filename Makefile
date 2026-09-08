@@ -138,6 +138,13 @@ V0_RUN = \
 	server=$$!; trap "kill $$server 2>/dev/null" EXIT INT TERM; sleep 1; \
 	AXE_EXTENSION_DIR=$(EXTENSION_DIR) AXE_TARGET_URL=$(AXE_TARGET_URL)
 
+## v0-trace: the same run, printing the leaf's whole conversation
+# The system prompt is the skill file, so this is long by design — it is the
+# only view of what the model was actually given versus what it answered.
+v0-trace: install extension env venv model
+	@$(LOAD_ENV) AXE_TRACE=1 AXE_MODEL=$(AXE_MODEL) AXE_MODEL_KWARGS='$(AXE_MODEL_KWARGS)' \
+		$(V0_RUN) $(UV) run --quiet python -m graph.run $(V0_ARGS)
+
 ## v0-docker: the same run, with the fixture as the built container
 v0-docker: image env venv model
 	@$(LOAD_ENV) AXE_FIXTURE=docker AXE_IMAGE=$(IMAGE) \

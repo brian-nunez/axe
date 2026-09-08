@@ -14,6 +14,7 @@ given, because the tool is in neither place.
 from __future__ import annotations
 
 import json
+import os
 import re
 from typing import Any, Awaitable, Callable
 
@@ -184,12 +185,94 @@ def model_thinker(model, tools: list[BaseTool], window_tokens: int) -> Thinker:
     return think
 
 
-def build_leaf(think: Thinker, tools: list[BaseTool], max_steps: int, *, checkpointer=None):
+def _brief(value: Any, limit: int = 160) -> str:
+    """One line, short enough to read in a scrolling log."""
+    text = value if isinstance(value, str) else json.dumps(value, default=str)
+    text = " ".join(text.split())
+    return text if len(text) <= limit else text[: limit - 1] + "…"
+
+
+def _call_line(name: str, args: dict[str, Any]) -> str:
+    shown = {k: v for k, v in (args or {}).items() if k != "report"}
+    return f"{name}({_brief(shown, 120)})" if shown else f"{name}()"
+
+
+def _result_line(content: Any) -> str:
+    """A tool result as a verdict, not as its whole payload."""
+    try:
+        value = json.loads(content) if isinstance(content, str) else content
+    except (ValueError, TypeError):
+        return _brief(content, 100)
+    if not isinstance(value, dict):
+        return _brief(content, 100)
+    if value.get("ok") is False:
+        return f"{value.get('error', 'error')} — {_brief(value.get('detail', ''), 90)}"
+    inner = value.get("value", value)
+    if isinstance(inner, dict):
+        for key in ("questionId", "kind", "outcome", "issue", "panelView", "verdict"):
+            if key in inner:
+                return f"ok  {key}={_brief(inner[key], 80)}"
+        if "elements" in inner and isinstance(inner["elements"], list):
+            return f"ok  {len(inner['elements'])} element(s)"
+    return "ok"
+
+
+TRACE = os.environ.get("AXE_TRACE") == "1"
+
+
+def _block(label: str, body: Any, say) -> None:
+    """One labelled block of the leaf's conversation, verbatim.
+
+    The whole exchange, not a summary: the system prompt is the skill file the
+    unit is being judged against, and a leaf that answers wrongly is usually
+    answering the file it was actually given rather than the one intended.
+    """
+    text = body if isinstance(body, str) else json.dumps(body, indent=2, default=str)
+    rule = "-" * 72
+    say(f"      {rule}\n      {label}\n      {rule}")
+    for line in (text or "").splitlines() or [""]:
+        say(f"      {line}")
+
+
+def build_leaf(
+    think: Thinker,
+    tools: list[BaseTool],
+    max_steps: int,
+    *,
+    checkpointer=None,
+    log=None,
+):
     """Compile one leaf. Cached by binding signature by the caller."""
     by_name = {t.name: t for t in (*tools, finish_unit)}
+    say = log or (lambda _message: None)
 
     async def think_node(state: LeafState) -> dict[str, Any]:
-        return {"messages": [await think(state["messages"])]}
+        if TRACE and state["steps"] == 0:
+            for message in state["messages"]:
+                kind = type(message).__name__.replace("Message", "").upper()
+                _block(f"{kind}", message.content, say)
+        reply = await think(state["messages"])
+        step = state["steps"] + 1
+        if TRACE:
+            if reply.content:
+                _block(f"AI (turn {step})", reply.content, say)
+            for call in reply.tool_calls:
+                _block(
+                    f"TOOL CALL (turn {step}) — {call['name']}",
+                    call.get("args", {}),
+                    say,
+                )
+        if reply.tool_calls:
+            for call in reply.tool_calls:
+                say(f"      {step:>2}. {_call_line(call['name'], call.get('args', {}))}")
+        else:
+            # The failure that ends a unit silently: a turn with no call. Say
+            # what it said instead, because "nothing" and "prose" are different
+            # problems and the log is where they are told apart.
+            text = _brief(reply.content or "", 140)
+            say(f"      {step:>2}. no tool call — {text!r}" if text
+                else f"      {step:>2}. no tool call, no content")
+        return {"messages": [reply]}
 
     async def act_node(state: LeafState) -> dict[str, Any]:
         last = state["messages"][-1]
@@ -242,6 +325,7 @@ def build_leaf(think: Thinker, tools: list[BaseTool], max_steps: int, *, checkpo
                     )
                 )
             else:
+                say("          -> report accepted")
                 messages.append(
                     ToolMessage(content="accepted", tool_call_id=first["id"], name=FINISH_UNIT_NAME)
                 )
@@ -271,6 +355,10 @@ def build_leaf(think: Thinker, tools: list[BaseTool], max_steps: int, *, checkpo
                             "retryable": False,
                         }
                     )
+            if TRACE:
+                _block(f"TOOL RESULT — {first['name']}", content, say)
+            else:
+                say(f"          -> {_result_line(content)}")
             messages.append(
                 ToolMessage(content=content, tool_call_id=first["id"], name=first["name"])
             )

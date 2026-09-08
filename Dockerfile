@@ -33,15 +33,15 @@ ENV UV_PYTHON_DOWNLOADS=never \
 # A corporate network reaches the outside through a proxy and an internal index.
 # These are build args rather than baked values: the image must not carry a
 # proxy URL or credentials, and a build host outside that network passes none.
+# Build-time only. ARG values are visible to RUN during the build, which is all
+# npm needs — an ENV here would BAKE the proxy into the image, so every
+# container would inherit a proxy it cannot authenticate against no matter what
+# the run passes. That is exactly what happened: the runtime forwarding was
+# removed twice and the popup persisted, because the image itself carried it.
 ARG HTTP_PROXY=
 ARG HTTPS_PROXY=
 ARG NO_PROXY=
 ARG NPM_CONFIG_REGISTRY=
-ARG NODE_EXTRA_CA_CERTS=
-ENV HTTP_PROXY=${HTTP_PROXY} HTTPS_PROXY=${HTTPS_PROXY} NO_PROXY=${NO_PROXY} \
-    http_proxy=${HTTP_PROXY} https_proxy=${HTTPS_PROXY} no_proxy=${NO_PROXY} \
-    NPM_CONFIG_REGISTRY=${NPM_CONFIG_REGISTRY} \
-    NODE_EXTRA_CA_CERTS=${NODE_EXTRA_CA_CERTS}
 
 # The source revision is a build argument because a running image cannot read
 # the repository it was built from, and a run's provenance is worthless if it

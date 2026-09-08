@@ -46,8 +46,12 @@ def server_command() -> dict[str, Any]:
         runs = pathlib.Path(os.environ.get("AXE_RUNS_DIR", REPO / "build" / "runs")).resolve()
         runs.mkdir(parents=True, exist_ok=True)
         args = ["run", "--rm", "-i", "--env-file", str(REPO / ".env")]
-        for var in ("AXE_TARGET_URL", "AXE_TEST_NAME", "AXE_HEADED",
-                    "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY"):
+        # Deliberately no proxy variables. They belong to the image *build*,
+        # where npm needs the internal registry. Forwarding them into the run
+        # points Chromium at a proxy it cannot authenticate against — the host
+        # does that transparently through the OS, a Linux container cannot —
+        # and Docker's own NAT already routes the traffic.
+        for var in ("AXE_TARGET_URL", "AXE_TEST_NAME", "AXE_HEADED"):
             if os.environ.get(var):
                 args += ["-e", f"{var}={os.environ[var]}"]
 

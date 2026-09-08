@@ -132,14 +132,35 @@ export async function clearOnboarding(frame) {
           .catch(() => null)
       )?.trim() ?? '(untitled)';
 
-    const role = dialog.locator('select#user-job-role');
-    if (await role.count()) {
-      await role.selectOption('Developer').catch(() => {});
-      await dialog
-        .locator('#terms-and-services-checkbox')
-        .check()
-        .catch(() => {});
-    }
+    // The gate on this dialog is a role and a terms box, and its submit stays
+    // disabled until both are set. Driven through the DOM with the events React
+    // listens for, because the Playwright actions were swallowed here and their
+    // failure was swallowed too — leaving a disabled button and no explanation.
+    const gate = await dialog.evaluate((node) => {
+      const select = node.querySelector('select#user-job-role');
+      if (select) {
+        const option = [...select.options].find(
+          (o) => o.value && !/^(unselected|)$/i.test(o.value) && !/please select/i.test(o.textContent),
+        );
+        if (option) {
+          const setter = Object.getOwnPropertyDescriptor(
+            Object.getPrototypeOf(select),
+            'value',
+          ).set;
+          setter.call(select, option.value);
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }
+      // A checkbox takes a click, not a value write: React binds onChange to the
+      // click for these, and a native `checked` write fires nothing.
+      const terms = node.querySelector('#terms-and-services-checkbox');
+      if (terms && !terms.checked) terms.click();
+      return {
+        role: select ? select.value : null,
+        terms: terms ? terms.checked : null,
+      };
+    });
+    await settle(500);
 
     // Dispatched on the element, never a pointer click. The panel's own tooltip
     // layer swallows a real click on its buttons — no error, no effect — so a
@@ -156,7 +177,8 @@ export async function clearOnboarding(frame) {
       ];
       const button = [...node.querySelectorAll('button')].find((b) => {
         const label = (b.getAttribute('aria-label') ?? b.textContent ?? '').trim().toLowerCase();
-        return !b.disabled && wanted.some((w) => label.includes(w));
+        const dead = b.disabled || b.getAttribute('aria-disabled') === 'true';
+        return !dead && wanted.some((w) => label.includes(w));
       });
       if (!button) return null;
       button.click();
@@ -182,7 +204,8 @@ export async function clearOnboarding(frame) {
         text: (node.innerText ?? '').replace(/\s+/g, ' ').trim().slice(0, 300),
       }));
       throw new Error(
-        `onboarding dialog ${JSON.stringify(title)} offered no button this knows.\n` +
+        `onboarding dialog ${JSON.stringify(title)} offered no enabled button this knows.\n` +
+          `  gate:    role=${JSON.stringify(gate.role)} terms=${JSON.stringify(gate.terms)}\n` +
           `  buttons: ${JSON.stringify(inventory.buttons)}\n` +
           `  inputs:  ${JSON.stringify(inventory.inputs)}\n` +
           `  links:   ${JSON.stringify(inventory.links)}\n` +

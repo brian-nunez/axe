@@ -63,6 +63,7 @@ def audit(args: argparse.Namespace) -> int:
         password = secrets.token_urlsafe(9)
         env["AXE_VNC_PASSWORD"] = password
         env["AXE_VNC_PORT"] = str(PORT)
+        env["AXE_VNC_INTERACTIVE"] = "0" if args.readonly else "1"
         print(paint(f"  watch  http://127.0.0.1:{PORT}", "32"))
         print(paint(f"  password  {password}", "32"))
         print()
@@ -124,6 +125,9 @@ def main() -> int:
     parser.add_argument("url", help="page state to audit, or the word 'doctor'")
     parser.add_argument("--watch", action="store_true", help="watch the browser in a web console")
     parser.add_argument("--debug", action="store_true", help="print the agent's whole conversation")
+    parser.add_argument(
+        "--readonly", action="store_true", help="watch without being able to click"
+    )
     parser.add_argument("--model", default=DEFAULT_MODEL, help=argparse.SUPPRESS)
     args = parser.parse_args()
 

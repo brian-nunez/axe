@@ -73,6 +73,11 @@ def server_command() -> dict[str, Any]:
         if password := os.environ.get("AXE_VNC_PASSWORD"):
             port = os.environ.get("AXE_VNC_PORT", "6080")
             args += ["-e", f"AXE_VNC_PASSWORD={password}"]
+            # Interactive by default: a console you cannot click is a video of a
+            # run, and the reason to open one is usually to take over. The
+            # entrypoint records that it was attached either way, so a touched
+            # run still cannot look untouched.
+            args += ["-e", f"AXE_VNC_INTERACTIVE={os.environ.get('AXE_VNC_INTERACTIVE', '1')}"]
             args += ["-p", f"127.0.0.1:{port}:6080"]
         args += ["-e", f"AXE_IMAGE_REF={image}"]
         args += ["-v", f"{runs}:/opt/axe/runs"]

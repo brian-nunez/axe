@@ -45,7 +45,25 @@ def server_command() -> dict[str, Any]:
         image = os.environ.get("AXE_IMAGE", "axedevtools-fixture:005")
         runs = pathlib.Path(os.environ.get("AXE_RUNS_DIR", REPO / "build" / "runs")).resolve()
         runs.mkdir(parents=True, exist_ok=True)
-        args = ["run", "--rm", "-i", "--env-file", str(REPO / ".env")]
+        # Named variables only, never --env-file. The container needs three
+        # credentials and a URL; an env file hands it everything else in there
+        # too, and on a corporate machine that means proxy settings Chromium
+        # then tries to authenticate against — a sign-in dialog nobody is there
+        # to answer. What the container does not know cannot misroute it.
+        args = ["run", "--rm", "-i"]
+        env_file = REPO / ".env"
+        if env_file.exists():
+            for line in env_file.read_text().splitlines():
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, value = line.split("=", 1)
+                if key.strip() in {
+                    "AXE_SERVER_URL",
+                    "AXE_USER_EMAIL_ADDRESS",
+                    "AXE_USER_PASSWORD",
+                }:
+                    args += ["-e", f"{key.strip()}={value.strip()}"]
         # Deliberately no proxy variables. They belong to the image *build*,
         # where npm needs the internal registry. Forwarding them into the run
         # points Chromium at a proxy it cannot authenticate against — the host

@@ -1,0 +1,49 @@
+{
+  "_": [
+    "The answer sheet for this page state, read by the scripted leaf",
+    "(`make v0-scripted`, or AXE_SCRIPT=<this file>).",
+    "",
+    "It is the operator saying 'on this page state, these are the answers' —",
+    "which is exactly the judgement a model makes at runtime and a script",
+    "cannot. It belongs to the page, not to the code, which is why it lives",
+    "beside the page it answers for. A model run ignores it entirely.",
+    "",
+    "The IGT half keys on the panel's own question id, never on the step",
+    "number: one step number spans several screens and inapplicable steps",
+    "never render. The manual half names the findings a reviewer would file",
+    "on this page, each with the leaf id from the skill file it belongs to."
+  ],
+  "igt": {
+    "structure": {
+      "questions": {
+        "mispurposed-headings": { "choice": "no" },
+        "missing-headings": { "choice": "no" },
+        "list-misuse": { "choice": "no" },
+        "missing-lists": { "choice": "yes", "select": ["p.fake-list"] },
+        "missing-langs": { "choice": "no" },
+        "validate-document-title": { "choice": "yes" }
+      },
+      "perElement": "yes",
+      "multiselect": []
+    }
+  },
+  "manual": {
+    "11": {
+      "find": "audio, video, iframe[src*='youtube'], iframe[src*='vimeo']",
+      "file": [
+        {
+          "check": "11.4",
+          "leaf": "11.4.captions-missing",
+          "selector": "#briefing",
+          "issue": "Captions are not available for recorded multimedia (1.2.2.a, rgaa-4.3.1)"
+        },
+        {
+          "check": "11.6",
+          "leaf": "11.6.transcript-missing",
+          "selector": "#briefing",
+          "issue": "No text or audio description available for multimedia content (1.2.3.a, rgaa-4.1.3)"
+        }
+      ]
+    }
+  }
+}

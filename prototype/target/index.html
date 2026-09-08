@@ -1,0 +1,64 @@
+<!doctype html>
+<!-- PROTOTYPE FIXTURE PAGE — throwaway. The target the prototypes audit.
+     Carries one of everything the Structure IGT and the manual issue form ask
+     about: real and fake lists, a mispurposed heading, an untagged foreign
+     language passage, a vague link, an image with no text alternative, and a
+     form that navigates away and back. Delete with the prototypes. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Structure IGT target</title>
+  <style>
+    body { font-family: Georgia, serif; margin: 2rem; max-width: 46rem; }
+    .fake-list { margin: 0 0 0 1rem; }
+    .banner { font-size: 1.6rem; font-weight: bold; margin: 1.5rem 0 0.5rem; }
+    table { border-collapse: collapse; }
+    td, th { border: 1px solid #999; padding: 0.3rem 0.6rem; }
+  </style>
+</head>
+<body>
+  <h1>Quarterly accessibility notes</h1>
+
+  <p>An overview of the quarter, written to give the guided tests something to
+    read. It runs long enough to wrap at a narrow viewport.</p>
+
+  <div class="banner">Looks like a heading, is not one</div>
+
+  <h2>Findings</h2>
+  <ul>
+    <li>Contrast on the secondary buttons</li>
+    <li>Focus order in the settings drawer</li>
+    <li>Missing landmarks on the dashboard</li>
+  </ul>
+
+  <h2>Notes that look like a list</h2>
+  <p class="fake-list">
+    - first note<br>
+    - second note<br>
+    - third note
+  </p>
+
+  <h3>A passage in another language</h3>
+  <p>Les rapports trimestriels sont publies chaque annee au mois de janvier,
+    et la version francaise n'est pas balisee comme telle.</p>
+
+  <h2>Reference</h2>
+  <p>For the full breakdown, <a id="vague-link" href="other.html">click here</a>.</p>
+  <p><img id="chart" src="data:image/gif;base64,R0lGODlhZABGAIAAAMzMzP///yH5BAAAAAAALAAAAABkAEYAAAIkjI+py+0Po5y02ouz3rz7D4biSJbmiabqyrbuC8fyTNf2jRcAOw==" width="100" height="70"></p>
+
+  <table>
+    <tr><td>Q1</td><td>18 issues</td></tr>
+    <tr><td>Q2</td><td>11 issues</td></tr>
+  </table>
+
+  <h2>Subscribe</h2>
+  <form id="subscribe" action="other.html" method="get">
+    <label for="who">Name</label>
+    <input id="who" name="who" type="text" value="reviewer">
+    <button type="submit">Send</button>
+  </form>
+
+  <div id="mutable"></div>
+</body>
+</html>

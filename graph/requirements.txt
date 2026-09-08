@@ -1,0 +1,12 @@
+# The Python side of the run: the LangGraph graph and its MCP client.
+# Pinned, because the graph depends on `Command(graph=Command.PARENT)` routing
+# and on `load_mcp_tools` over a session the caller holds open — both of which
+# have moved between releases.
+langchain==1.4.0
+langchain-core==1.6.2
+langgraph==1.2.11
+langgraph-checkpoint-sqlite==3.1.1
+langchain-mcp-adapters==0.3.2
+langchain-openai==1.6.0
+mcp==1.30.0
+PyYAML==6.0.3

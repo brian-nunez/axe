@@ -1,0 +1,529 @@
+{
+  "source": "https://axe.deque.com/coverage-page-state",
+  "sourceNote": "Deque's 'Advanced Testing Coverage' / Remaining Testing guide, served by the axe DevTools Server the extension points at. On a self-hosted instance that is ${AXE_SERVER_URL}/coverage-page-state, so this content is served from our own host. The page is a login-gated SPA: fetching the URL unauthenticated returns an empty shell.",
+  "capturedFrom": "axe.deque.com, authenticated session",
+  "standard": "WCAG 2.2 AA per the guide's own heading; the panel's Options are set to WCAG 2.1 AA. The manual issue combobox is not filtered by that setting — the catalog dump taken under 2.1 AA still contains 2.4.11 and 2.5.8 — so test 16 Target Size is fileable either way.",
+  "structureNote": "Branch conditions are paraphrased to a machine-readable shape, not copied. Issue identifiers are Deque's and are verbatim. Where a leaf lists several, Deque offers all of them for that branch and the auditor picks the one that fits.",
+  "identifierJoinNote": "These slugs do NOT join to the manual issue catalog. Measured: 0 of 92 appear anywhere in any of the 418 catalog option texts. They are Deque's vocabulary for the Remaining Testing guide; the catalog uses a different one (4.1.2.a). The only shared key is the WCAG success criterion, and all 37 criteria cited here do appear in the catalog. Since one criterion names a family of entries — 4.1.2.a alone covers 31 — resolving a branch to an exact catalog entry is hand work, not a lookup.",
+  "screenReaderTests": [2, 10, 13],
+  "tests": [
+    {
+      "id": 1,
+      "name": "Automatic Behavior",
+      "screenReader": false,
+      "checks": [
+        {
+          "when": "content updates automatically (carousels, message feeds) and the user cannot pause, stop, hide, or control the frequency",
+          "issues": [
+            { "sc": "2.2.2", "id": "content-carousel-unstoppable" },
+            { "sc": "2.2.2", "id": "content-updates-uninterruptible" }
+          ]
+        },
+        {
+          "when": "content moves, blinks, or scrolls for more than 5 seconds with no mechanism to pause, stop, or hide it",
+          "issues": [{ "sc": "2.2.2", "id": "content-motion-uninterruptible" }]
+        },
+        {
+          "when": "content flashes more than 3 times per second and exceeds 25% of any 10-degree visual field at typical viewing distance",
+          "issues": [{ "sc": "2.3.1", "id": "content-flashing-big" }]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Page Meaning",
+      "screenReader": true,
+      "outOfScopeReason": "requires a screen reader; auditors run this by hand",
+      "checks": [
+        {
+          "when": "browsing top to bottom with a screen reader, static content is not in a correct reading sequence, or hidden content is encountered",
+          "issues": [
+            { "sc": "1.3.2", "id": "reading-order-layout-table-non-linear" },
+            { "sc": "1.3.2", "id": "reading-order-not-logical" },
+            { "sc": "1.3.2", "id": "reading-order-hidden-content" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Page Structure",
+      "screenReader": false,
+      "checks": [
+        {
+          "when": "heading levels are out of order such that page structure is not properly conveyed",
+          "issues": [{ "sc": "1.3.1", "id": "heading-level-order" }]
+        },
+        {
+          "when": "no heading at the top of main content, and no main landmark containing it, and a skip link exists among the first focusable elements but activating it does not move focus to the expected destination",
+          "issues": [{ "sc": "2.4.1", "id": "structure-skiplink-broken" }]
+        },
+        {
+          "when": "no heading at the top of main content, no main landmark containing it, and no skip link",
+          "issues": [{ "sc": "2.4.1", "id": "structure-major-problems" }]
+        },
+        {
+          "when": "a group of navigation links or breadcrumbs is not identified by any of: a nav element, list items within a common list, menu items within a common menu, or a preceding heading",
+          "issues": [
+            { "sc": "1.3.1", "id": "semantic-nav" },
+            { "sc": "4.1.2", "id": "custom-navigation" },
+            { "sc": "4.1.2", "id": "custom-breadcrumb" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Interactive Elements",
+      "screenReader": false,
+      "scope": "two passes: once across all interactive elements, then once per focused element",
+      "checks": [
+        {
+          "pass": "all",
+          "when": "components receive focus in an illogical order, making functionality difficult to operate",
+          "issues": [{ "sc": "2.4.3", "id": "tab-order-illogical" }]
+        },
+        {
+          "pass": "all",
+          "when": "a component is skipped in the natural focus order and its underlying function does not require path-dependent pointer input",
+          "issues": [
+            { "sc": "2.1.1", "id": "keyboard-inaccessible" },
+            { "sc": "2.1.1", "id": "modal-unclosable" }
+          ]
+        },
+        {
+          "pass": "all",
+          "when": "focus becomes trapped, cannot be moved out with Tab, Shift+Tab, arrows or standard exit keys, and the page does not explain how to leave",
+          "issues": [{ "sc": "2.1.2", "id": "keyboard-trap" }]
+        },
+        {
+          "pass": "element",
+          "when": "the focused element is completely empty",
+          "issues": [{ "sc": "2.4.3", "id": "focus-on-hidden-item" }]
+        },
+        {
+          "pass": "element",
+          "when": "the focused element is visually hidden because other content obscures it",
+          "issues": [{ "sc": "2.4.11", "id": "focus-fully-obscured" }]
+        },
+        {
+          "pass": "element",
+          "when": "moving focus to the element opens a new window",
+          "issues": [{ "sc": "3.2.1", "id": "focus-window-launches" }]
+        },
+        {
+          "pass": "element",
+          "when": "moving focus changes content above the current location in a way that changes the meaning of the page",
+          "issues": [{ "sc": "3.2.1", "id": "unexpected-change-on-focus" }]
+        },
+        {
+          "pass": "element",
+          "when": "moving focus submits a form",
+          "issues": [{ "sc": "3.2.1", "id": "focus-submits-form" }]
+        },
+        {
+          "pass": "element",
+          "when": "moving focus automatically removes or redirects focus",
+          "issues": [{ "sc": "3.2.1", "id": "focus-visual-affects-keyboard" }]
+        },
+        {
+          "pass": "element",
+          "when": "focus reveals new content nearby (a tooltip) that disappears on its own shortly after being displayed",
+          "issues": [{ "sc": "1.4.13", "id": "content-does-not-remain-visible" }]
+        },
+        {
+          "pass": "element",
+          "when": "focus-revealed content cannot be actively dismissed with the keyboard",
+          "issues": [{ "sc": "1.4.13", "id": "content-not-dismissible" }]
+        },
+        {
+          "pass": "element",
+          "when": "moving the pointer over focus-revealed content causes it to disappear",
+          "issues": [{ "sc": "1.4.13", "id": "content-hover-disappears" }]
+        },
+        {
+          "pass": "element",
+          "when": "the element has visible text and its accessible name does not contain those words, in the same order, somewhere within it",
+          "issues": [
+            { "sc": "2.5.3", "id": "speech-accessible-name-mismatch" },
+            { "sc": "2.5.3", "id": "speech-accessible-name-order" }
+          ],
+          "computable": true,
+          "note": "the canonical example of a branch a tool computes rather than the model judging"
+        },
+        {
+          "pass": "element",
+          "when": "changing the setting of a component causes a change of context without warning beforehand",
+          "issues": [
+            { "sc": "3.2.2", "id": "unexpected-window-launch" },
+            { "sc": "3.2.2", "id": "unexpected-change-on-interaction" },
+            { "sc": "3.2.2", "id": "unexpected-change-select" }
+          ]
+        },
+        {
+          "pass": "element",
+          "when": "clicking produces its action on the down event, completion on down is not essential, and no confirmation or undo is offered",
+          "issues": [{ "sc": "2.5.2", "id": "touch-down-event" }]
+        },
+        {
+          "pass": "element",
+          "when": "mouse click or hover triggers functionality unavailable to the keyboard, or Enter/Space/arrows trigger functionality unavailable to the mouse",
+          "issues": [{ "sc": "4.1.2", "id": "dual-role" }]
+        },
+        {
+          "pass": "element",
+          "when": "the element is a known widget type (accordion, button, checkbox, disclosure, link, listbox, menu, menu bar, radio button or group, slider, spinbutton, toolbar control, tooltip trigger, window splitter) and its keyboard interactions do not follow the WAI-ARIA Authoring Practices for that type",
+          "issues": [{ "sc": "4.1.2", "id": "dual-role" }]
+        },
+        {
+          "pass": "element",
+          "when": "with the element unfocused and hovered, its text contrast against background is below 4.5:1 (3:1 for large-scale text)",
+          "issues": [
+            { "sc": "1.4.3", "id": "contrast-link-infocus-4.5-1" },
+            { "sc": "1.4.3", "id": "contrast-link-infocus-3-1" }
+          ],
+          "computable": true
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Static Content",
+      "screenReader": false,
+      "checks": [
+        {
+          "when": "a navigating link appears within static text, its contrast against the surrounding text is below 3:1, and it is not visually distinguished by some non-colour means (underline, bold, italic, chevron, arrow, outline)",
+          "issues": [{ "sc": "1.4.1", "id": "link-insufficient-contrast" }],
+          "computable": "partly"
+        },
+        {
+          "when": "an informative graphic, broken into its smallest meaningful graphical objects, has any object below 3:1 against its surrounding background",
+          "issues": [
+            { "sc": "1.4.11", "id": "contrast-graphical-objects-3-1" },
+            { "sc": "1.4.11", "id": "contrast-graphical-objects-icon-3-1" }
+          ],
+          "requiresScreenshot": true
+        },
+        {
+          "when": "placeholder text is not purely decorative and its contrast against background is below 4.5:1",
+          "issues": [{ "sc": "1.4.3", "id": "contrast-text-4.5-1-placeholder" }],
+          "computable": true
+        },
+        {
+          "when": "an image map has multiple area tags sharing an alt value, and they either point to different destinations or duplicate inappropriately",
+          "issues": [{ "sc": "2.4.4", "id": "alt-text-image-map-nonunique" }]
+        },
+        {
+          "when": "an element with aria-hidden=\"true\" contains informative content necessary for understanding the page",
+          "issues": [{ "sc": "1.3.1", "id": "semantic-hidden" }]
+        },
+        {
+          "when": "an element with role=\"presentation\" would lose information about its purpose if replaced by a plain div with the same styling",
+          "issues": [{ "sc": "1.3.1", "id": "semantic-role-presentation" }]
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Sensory Characteristics",
+      "screenReader": false,
+      "checks": [
+        {
+          "when": "colour conveys information, indicates an action, prompts a response, or distinguishes an element, with no equivalent non-colour visual cue",
+          "issues": [
+            { "sc": "1.4.1", "id": "information-color" },
+            { "sc": "1.4.1", "id": "form-errors-color-only" }
+          ],
+          "requiresScreenshot": true
+        },
+        {
+          "when": "instructions require perceiving shape, colour, size, visual location or orientation, with no equivalent conveyed otherwise",
+          "issues": [
+            { "sc": "1.1.1", "id": "captcha-requires-vision" },
+            { "sc": "1.3.3", "id": "information-requires-vision" }
+          ],
+          "requiresScreenshot": true
+        },
+        {
+          "when": "instructions require perceiving auditory characteristics, with no equivalent conveyed otherwise",
+          "issues": [{ "sc": "1.3.3", "id": "information-requires-hearing" }],
+          "requiresScreenshot": false,
+          "note": "the evidence is the instruction's own text; a picture of the page answers nothing here"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Forms",
+      "screenReader": false,
+      "checks": [
+        {
+          "when": "a form field collects information about the user, its purpose appears in the WCAG Input Purposes for User Interface Components list, and it either lacks an autocomplete attribute or its value does not match that purpose",
+          "issues": [{ "sc": "1.3.5", "id": "id-input-purpose-missing" }],
+          "computable": true,
+          "note": "fully deterministic; the highest-confidence test of the sixteen"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Focus Management",
+      "screenReader": false,
+      "checks": [
+        {
+          "when": "activating a component by keyboard transitions the page to a new state and focus does not move somewhere that preserves the meaning and operability of the page",
+          "issues": [{ "sc": "2.4.3", "id": "focus-lost" }],
+          "note": "focus not moving at all is sometimes correct; revert to the prior state before testing the next component"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Text Resize, Reflow, and Spacing",
+      "screenReader": false,
+      "checks": [
+        {
+          "when": "increasing user-agent zoom until text doubles in size loses content or functionality",
+          "issues": [
+            { "sc": "1.4.4", "id": "resize-text-content-lost" },
+            { "sc": "1.4.4", "id": "resize-text-function-lost" }
+          ],
+          "requiresScreenshot": true
+        },
+        {
+          "when": "at a 320px viewport width, horizontal scrolling is needed and the content does not require a two-dimensional layout",
+          "issues": [{ "sc": "1.4.10", "id": "content-horizontal-scroll" }],
+          "computable": "partly",
+          "requiresScreenshot": false,
+          "note": "scrollWidth > clientWidth at 320px is a bright-line measurement; only the two-dimensional-layout exception is judged, and from the overflowing elements rather than from a picture"
+        },
+        {
+          "when": "at a 320px viewport width, content or functionality is lost",
+          "issues": [{ "sc": "1.4.10", "id": "content-reflow-content-lost" }],
+          "requiresScreenshot": true
+        },
+        {
+          "when": "applying the WCAG text-spacing bookmarklet at each breakpoint loses content or functionality",
+          "issues": [
+            { "sc": "1.4.12", "id": "text-spacing-overlap" },
+            { "sc": "1.4.12", "id": "text-spacing-cut-off" }
+          ],
+          "requiresScreenshot": true,
+          "note": "run once per breakpoint, at the largest viewport within each"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Status Messages",
+      "screenReader": true,
+      "outOfScopeReason": "the announcement half requires a screen reader; detecting live regions does not",
+      "checks": [
+        {
+          "when": "a status message is not announced immediately by the screen reader",
+          "issues": [{ "sc": "4.1.3", "id": "status-msg-not-auto-announced" }]
+        },
+        {
+          "when": "a status message disappears on its own while the status it describes still applies, and the information is not available elsewhere on the page",
+          "issues": [{ "sc": "2.2.1", "id": "content-disappears" }]
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "name": "Alternatives for Timed Media",
+      "screenReader": false,
+      "checks": [
+        {
+          "when": "prerecorded audio-only media lacks a complete, accurate transcript identifying all speakers and describing important sound effects",
+          "issues": [
+            { "sc": "1.2.1", "id": "text-transcript-missing" },
+            { "sc": "1.2.1", "id": "text-transcript-inadequate" },
+            { "sc": "1.2.1", "id": "text-transcript-incomplete" },
+            { "sc": "1.2.1", "id": "text-transcript-undescribed-effects" },
+            { "sc": "1.2.1", "id": "text-transcript-unidentified-speakers" }
+          ]
+        },
+        {
+          "when": "prerecorded video-only media has an audio description track or transcript that does not adequately describe the video",
+          "issues": [{ "sc": "1.2.1", "id": "nonvisual-description-inadequate" }]
+        },
+        {
+          "when": "prerecorded video-only media has neither an audio description track nor a transcript",
+          "issues": [{ "sc": "1.2.1", "id": "nonvisual-description-missing" }]
+        },
+        {
+          "when": "prerecorded video with audio lacks captions that are complete, accurate, synchronised, legible, adequate, and identify speakers and important sound effects",
+          "issues": [
+            { "sc": "1.2.2", "id": "captions-missing" },
+            { "sc": "1.2.2", "id": "captions-inadequate" },
+            { "sc": "1.2.2", "id": "captions-incomplete" },
+            { "sc": "1.2.2", "id": "captions-not-clearly-visible" },
+            { "sc": "1.2.2", "id": "captions-not-synchronized" },
+            { "sc": "1.2.2", "id": "captions-undescribed-effects" },
+            { "sc": "1.2.2", "id": "captions-unidentified-speakers" }
+          ]
+        },
+        {
+          "when": "prerecorded multimedia carries essential information shown only visually and has no adequate audio description track",
+          "issues": [
+            { "sc": "1.2.5", "id": "audio-description-missing" },
+            { "sc": "1.2.5", "id": "audio-description-inadequate" }
+          ]
+        },
+        {
+          "when": "prerecorded multimedia lacks a transcript adequately describing both visual and auditory content",
+          "issues": [
+            { "sc": "1.2.3", "id": "nonvisual-description-missing" },
+            { "sc": "1.2.3", "id": "text-alternative-inadequate" },
+            { "sc": "1.2.3", "id": "audio-description-inadequate" }
+          ]
+        },
+        {
+          "when": "live video with audio lacks captions that are complete, accurate, synchronised, legible, adequate, and identify speakers and important sound effects",
+          "issues": [
+            { "sc": "1.2.4", "id": "captions-missing" },
+            { "sc": "1.2.4", "id": "captions-inadequate" },
+            { "sc": "1.2.4", "id": "captions-incomplete" },
+            { "sc": "1.2.4", "id": "captions-not-clearly-visible" },
+            { "sc": "1.2.4", "id": "captions-not-synchronized" },
+            { "sc": "1.2.4", "id": "captions-undescribed-effects" },
+            { "sc": "1.2.4", "id": "captions-unidentified-speakers" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Tables",
+      "screenReader": false,
+      "scope": "per data table",
+      "checks": [
+        {
+          "when": "the table's first row holds caption-like information rather than data",
+          "issues": [{ "sc": "1.3.1", "id": "table-data-headers-captiony" }]
+        },
+        {
+          "when": "the table is sortable and, after sorting, the sorted header cell neither indicates the sort in its accessible name nor carries aria-sort with a direction",
+          "issues": [{ "sc": "4.1.2", "id": "state-table-sort" }],
+          "computable": true,
+          "note": "computable only because the manual path can now sort the table; see 020"
+        },
+        {
+          "when": "the table has role=table or role=grid and a row is neither a tr nor role=row, or a data cell is neither td, role=cell, nor role=gridcell within a grid",
+          "issues": [{ "sc": "1.3.1", "id": "semantic-data-table" }],
+          "computable": true
+        },
+        {
+          "when": "header cells do not carry the markup their header structure requires — One Header: th or columnheader/rowheader; Two Headers: th with scope=col/row or the equivalent role; Irregular: scope and span attributes matching the cells spanned, with corresponding col or colgroup elements",
+          "issues": [{ "sc": "1.3.1", "id": "semantic-data-table" }],
+          "computable": true
+        },
+        {
+          "when": "a multi-level table's header cells lack document-unique ids, or data cells lack headers or aria-labelledby listing every associated header id",
+          "issues": [
+            { "sc": "1.3.1", "id": "table-complex-no-header-associations" },
+            { "sc": "1.3.1", "id": "table-complex-association-incorrect" }
+          ],
+          "computable": true
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "name": "Time Limits",
+      "screenReader": true,
+      "outOfScopeReason": "the warning and extension checks require a screen reader and waiting out the limit",
+      "exemptions": [
+        "the limit is longer than 20 hours",
+        "the user can turn it off before encountering it",
+        "the user can adjust it to at least ten times its default before encountering it",
+        "it is required by a real-time event with no possible alternative",
+        "it is essential and extending it would invalidate the activity"
+      ],
+      "checks": [
+        {
+          "when": "a non-exempt time limit expires with no warning beforehand",
+          "issues": [{ "sc": "2.2.1", "id": "timeout-no-warning" }]
+        },
+        {
+          "when": "the warning is not announced immediately by the screen reader",
+          "issues": [{ "sc": "2.2.1", "id": "timeout-not-announced" }]
+        },
+        {
+          "when": "the user has fewer than 20 seconds to extend the limit with a simple action",
+          "issues": [{ "sc": "2.2.1", "id": "timeout-extension-grace" }]
+        },
+        {
+          "when": "the extension mechanism cannot be reached and activated with keyboard and screen reader alone",
+          "issues": [{ "sc": "2.2.1", "id": "timeout-screenreader" }]
+        },
+        {
+          "when": "the limit cannot be extended in that way at least ten times",
+          "issues": [{ "sc": "2.2.1", "id": "timeout-not-extensible" }]
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "name": "Shortcuts",
+      "screenReader": false,
+      "checks": [
+        {
+          "when": "a custom keyboard shortcut conflicts with an existing browser or screen reader shortcut",
+          "issues": [{ "sc": "2.1.1", "id": "keyboard-shortcut-conflict" }]
+        },
+        {
+          "when": "a single-key shortcut exists that cannot be turned off, cannot be remapped to use multiple keys, and is not restricted to when its component has focus",
+          "issues": [{ "sc": "2.1.4", "id": "keyboard-character-key-shortcuts" }]
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "name": "Motion and Gestures",
+      "screenReader": false,
+      "checks": [
+        {
+          "when": "functionality takes dragging input, cannot be operated by a single pointer without dragging, and dragging is not essential",
+          "issues": [{ "sc": "2.5.7", "id": "dragging-no-alternative" }]
+        },
+        {
+          "when": "functionality takes path-based or multipoint gesture input and cannot be operated by a single pointer without such a gesture",
+          "issues": [
+            { "sc": "2.5.1", "id": "touch-path-based-gesture-required" },
+            { "sc": "2.5.1", "id": "touch-single-point-action-not-avail" }
+          ]
+        },
+        {
+          "when": "functionality takes device or user motion input with no equivalent UI component that does not require motion",
+          "issues": [{ "sc": "2.5.4", "id": "motion-actuation-required" }]
+        },
+        {
+          "when": "motion-based operation cannot be disabled",
+          "issues": [{ "sc": "2.5.4", "id": "motion-actuation-cannot-disable" }]
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "name": "Target Size",
+      "screenReader": false,
+      "prerequisite": "the axe-core automated scan and the Interactive Elements IGT must both have run on this page state; the test reads the saved test's Overview for issues reading 'Role: The element's role is missing or incorrect'",
+      "exceptions": [
+        "the element is a link or control appearing inline in a sentence or block of text",
+        "the element's target size is determined by the user agent and unmodified by the author (default radio buttons, checkboxes, select elements, date pickers)",
+        "equivalent: the same function is available through another control on the page whose target is at least 24 by 24 pixels",
+        "spacing: a 24px diameter circle centred on the target touches neither another target nor the 24px circle of any adjacent undersized target"
+      ],
+      "checks": [
+        {
+          "when": "an element's target is smaller than 24 by 24 pixels and meets none of the exceptions",
+          "issues": [{ "sc": "2.5.8", "id": "target-size-small" }],
+          "computable": true,
+          "note": "pure geometry once the candidate set comes from the scan"
+        }
+      ]
+    }
+  ]
+}

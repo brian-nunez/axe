@@ -1,0 +1,9 @@
+{
+  "extension_id": "lhdoppojpmngadmnindnejefpokejbdd",
+  "version": "4.135.0",
+  "crx": "lhdoppojpmngadmnindnejefpokejbdd-4.135.0.crx",
+  "sha256": "47077e6fc7babcf61baf102c4acc3999e67fcb855d21afc0a592e13341c853b4",
+  "source": "https://clients2.google.com/service/update2/crx?response=redirect&acceptformat=crx2,crx3&prodversion=145.0.7632.6&x=id%3Dlhdoppojpmngadmnindnejefpokejbdd%26uc",
+  "retrieved": "2026-09-07",
+  "verified_against": "Google Chrome for Testing 145.0.7632.6"
+}

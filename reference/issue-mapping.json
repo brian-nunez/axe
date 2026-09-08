@@ -1,0 +1,1334 @@
+{
+  "purpose": "Maps each Deque issue slug cited by the 16 page state tests to the one manual issue catalog entry a skill file branch should file. Hand-mapped: the two vocabularies do not join, and a success criterion names a family rather than an entry.",
+  "sources": {
+    "checklist": "reference/page-state-tests.json",
+    "catalog": "build/manual-issue/catalog.json (418 entries, produced by `make catalog`)"
+  },
+  "ticket": "wayfinder/tickets/006-export-issue-catalog.md",
+  "howToUse": "Look the branch’s issue slug up here and file catalogOptionText verbatim into the Add Manual Issue combobox. The full option text — label and parentheses together — is the only unique key; the instance id inside it is not. A row resolves per branch, not per slug: where a slug is cited under more than one success criterion the row carries byCriterion and the branch’s own criterion selects the entry; where a slug is cited by two branches that mean different things under the same criterion the row carries byBranch and the branch selects directly. A row carries exactly one of catalogOptionText, byCriterion or byBranch.",
+  "byBranch": "Keyed by a short branch name. Each cell carries the checklist condition it serves in `when`, copied verbatim from page-state-tests.json, which is what lets the check assert that the branch rows and the checklist branches are the same set. `semantic-data-table`’s branch names are check_table_semantics’ leaf names, so a skill file’s routing table and the mapping use one vocabulary.",
+  "confidence": {
+    "high": "the entry is an unambiguous match for the branch, under the criterion the checklist cites",
+    "low": "flagged for a human: several entries in the family match equally, no entry matches well, or the closest entry sits under a different success criterion. Read the note before filing.",
+    "unmapped": "no defensible entry exists"
+  },
+  "counts": {
+    "high": 84,
+    "low": 8,
+    "unmapped": 0
+  },
+  "branchCounts": {
+    "high": 94,
+    "low": 9,
+    "unmapped": 0
+  },
+  "countsNote": "counts rolls a slug up across its branches — a slug is low if any branch of it is. branchCounts is the per-branch tally over the 103 branches the checklist cites, which is what the completeness assertion covers.",
+  "verify": "node tools/check-issue-mapping.mjs",
+  "mappings": {
+    "alt-text-image-map-nonunique": {
+      "slug": "alt-text-image-map-nonunique",
+      "successCriterion": "2.4.4",
+      "pageStateTests": [
+        5
+      ],
+      "catalogOptionText": "Non-unique text alternative for image map areas (2.4.4.a, rgaa-1.1.4)",
+      "catalogInstances": [
+        "2.4.4.a"
+      ],
+      "confidence": "high"
+    },
+    "audio-description-inadequate": {
+      "slug": "audio-description-inadequate",
+      "successCriterion": [
+        "1.2.3",
+        "1.2.5"
+      ],
+      "pageStateTests": [
+        11
+      ],
+      "byCriterion": {
+        "1.2.3": {
+          "catalogOptionText": "Audio description is incorrect or inadequate (1.2.3.a, rgaa-4.6.1, rgaa-4.6.2)",
+          "catalogInstances": [
+            "1.2.3.a"
+          ],
+          "confidence": "high",
+          "note": "This label is the catalog’s one duplicate, existing under both 1.2.3.a and 1.2.5.a; only the full option text separates them, and the branch’s criterion picks which."
+        },
+        "1.2.5": {
+          "catalogOptionText": "Audio description is incorrect or inadequate (1.2.5.a)",
+          "catalogInstances": [
+            "1.2.5.a"
+          ],
+          "confidence": "high",
+          "note": "This label is the catalog’s one duplicate, existing under both 1.2.3.a and 1.2.5.a; only the full option text separates them, and the branch’s criterion picks which."
+        }
+      },
+      "confidence": "high"
+    },
+    "audio-description-missing": {
+      "slug": "audio-description-missing",
+      "successCriterion": "1.2.5",
+      "pageStateTests": [
+        11
+      ],
+      "catalogOptionText": "Audio description is not available (1.2.5.a, rgaa-4.1.2, rgaa-4.1.3, rgaa-4.5.1, rgaa-4.5.2)",
+      "catalogInstances": [
+        "1.2.5.a"
+      ],
+      "confidence": "high"
+    },
+    "captcha-requires-vision": {
+      "slug": "captcha-requires-vision",
+      "successCriterion": "1.1.1",
+      "pageStateTests": [
+        6
+      ],
+      "catalogOptionText": "CAPTCHA task has only one option (1.1.1.g, rgaa-1.5.1, rgaa-1.5.2)",
+      "catalogInstances": [
+        "1.1.1.g"
+      ],
+      "confidence": "low",
+      "note": "Ambiguous. \"CAPTCHA is missing text alternative\" and \"Text alternative for CAPTCHA is not appropriate\" describe the same failure from the alt-text side; this entry reads it as only one sensory modality being offered, which is the closer fit for \"requires perceiving shape, colour, size or location\". All three sit under 1.1.1.g."
+    },
+    "captions-inadequate": {
+      "slug": "captions-inadequate",
+      "successCriterion": [
+        "1.2.2",
+        "1.2.4"
+      ],
+      "pageStateTests": [
+        11
+      ],
+      "byCriterion": {
+        "1.2.2": {
+          "catalogOptionText": "Captions for recorded media are incorrect or inadequate (1.2.2.a, rgaa-4.4.1)",
+          "catalogInstances": [
+            "1.2.2.a"
+          ],
+          "confidence": "high"
+        },
+        "1.2.4": {
+          "catalogOptionText": "Captions for live media are incorrect or inadequate (1.2.4.a)",
+          "catalogInstances": [
+            "1.2.4.a"
+          ],
+          "confidence": "high"
+        }
+      },
+      "confidence": "high"
+    },
+    "captions-incomplete": {
+      "slug": "captions-incomplete",
+      "successCriterion": [
+        "1.2.2",
+        "1.2.4"
+      ],
+      "pageStateTests": [
+        11
+      ],
+      "byCriterion": {
+        "1.2.2": {
+          "catalogOptionText": "Captions for recorded media do not contain all dialogue (1.2.2.a, rgaa-4.4.1)",
+          "catalogInstances": [
+            "1.2.2.a"
+          ],
+          "confidence": "high"
+        },
+        "1.2.4": {
+          "catalogOptionText": "Captions for live media do not contain all dialogue (1.2.4.a)",
+          "catalogInstances": [
+            "1.2.4.a"
+          ],
+          "confidence": "high"
+        }
+      },
+      "confidence": "high"
+    },
+    "captions-missing": {
+      "slug": "captions-missing",
+      "successCriterion": [
+        "1.2.2",
+        "1.2.4"
+      ],
+      "pageStateTests": [
+        11
+      ],
+      "byCriterion": {
+        "1.2.2": {
+          "catalogOptionText": "Captions are not available for recorded multimedia (1.2.2.a, rgaa-4.3.1)",
+          "catalogInstances": [
+            "1.2.2.a"
+          ],
+          "confidence": "high"
+        },
+        "1.2.4": {
+          "catalogOptionText": "Captions are not available for live multimedia (1.2.4.a)",
+          "catalogInstances": [
+            "1.2.4.a"
+          ],
+          "confidence": "high"
+        }
+      },
+      "confidence": "high"
+    },
+    "captions-not-clearly-visible": {
+      "slug": "captions-not-clearly-visible",
+      "successCriterion": [
+        "1.2.2",
+        "1.2.4"
+      ],
+      "pageStateTests": [
+        11
+      ],
+      "byCriterion": {
+        "1.2.2": {
+          "catalogOptionText": "Caption text for recorded multimedia has inadequate contrast (1.2.2.a, rgaa-4.4.1)",
+          "catalogInstances": [
+            "1.2.2.a"
+          ],
+          "confidence": "high",
+          "note": "Contrast is the only legibility failure the catalog carries for captions, so a caption that is illegible for another reason — size, or being cropped by the player — has no exact entry."
+        },
+        "1.2.4": {
+          "catalogOptionText": "Caption text for live multimedia has inadequate contrast (1.2.4.a)",
+          "catalogInstances": [
+            "1.2.4.a"
+          ],
+          "confidence": "high",
+          "note": "Contrast is the only legibility failure the catalog carries for captions, so a caption that is illegible for another reason — size, or being cropped by the player — has no exact entry."
+        }
+      },
+      "confidence": "high"
+    },
+    "captions-not-synchronized": {
+      "slug": "captions-not-synchronized",
+      "successCriterion": [
+        "1.2.2",
+        "1.2.4"
+      ],
+      "pageStateTests": [
+        11
+      ],
+      "byCriterion": {
+        "1.2.2": {
+          "catalogOptionText": "Captions for recorded multimedia are not synchronized (1.2.2.a, rgaa-4.4.1)",
+          "catalogInstances": [
+            "1.2.2.a"
+          ],
+          "confidence": "high"
+        },
+        "1.2.4": {
+          "catalogOptionText": "Captions for live multimedia are not synchronized (1.2.4.a)",
+          "catalogInstances": [
+            "1.2.4.a"
+          ],
+          "confidence": "high"
+        }
+      },
+      "confidence": "high"
+    },
+    "captions-undescribed-effects": {
+      "slug": "captions-undescribed-effects",
+      "successCriterion": [
+        "1.2.2",
+        "1.2.4"
+      ],
+      "pageStateTests": [
+        11
+      ],
+      "byCriterion": {
+        "1.2.2": {
+          "catalogOptionText": "Captions for recorded multimedia do not describe important sounds (1.2.2.a, rgaa-4.4.1)",
+          "catalogInstances": [
+            "1.2.2.a"
+          ],
+          "confidence": "high"
+        },
+        "1.2.4": {
+          "catalogOptionText": "Captions for live multimedia do not describe important sounds (1.2.4.a)",
+          "catalogInstances": [
+            "1.2.4.a"
+          ],
+          "confidence": "high"
+        }
+      },
+      "confidence": "high"
+    },
+    "captions-unidentified-speakers": {
+      "slug": "captions-unidentified-speakers",
+      "successCriterion": [
+        "1.2.2",
+        "1.2.4"
+      ],
+      "pageStateTests": [
+        11
+      ],
+      "byCriterion": {
+        "1.2.2": {
+          "catalogOptionText": "Captions for recorded multimedia do not identify all speakers (1.2.2.a, rgaa-4.4.1)",
+          "catalogInstances": [
+            "1.2.2.a"
+          ],
+          "confidence": "high"
+        },
+        "1.2.4": {
+          "catalogOptionText": "Captions for live multimedia do not identify all speakers (1.2.4.a)",
+          "catalogInstances": [
+            "1.2.4.a"
+          ],
+          "confidence": "high"
+        }
+      },
+      "confidence": "high"
+    },
+    "content-carousel-unstoppable": {
+      "slug": "content-carousel-unstoppable",
+      "successCriterion": "2.2.2",
+      "pageStateTests": [
+        1
+      ],
+      "catalogOptionText": "Carousel has no stop/pause mechanism (2.2.2.b, rgaa-13.8.1)",
+      "catalogInstances": [
+        "2.2.2.b"
+      ],
+      "confidence": "high"
+    },
+    "content-disappears": {
+      "slug": "content-disappears",
+      "successCriterion": "2.2.1",
+      "pageStateTests": [
+        10
+      ],
+      "catalogOptionText": "Content visually appears and disappears with no ability to adjust timing (2.2.1.a, rgaa-13.1.4)",
+      "catalogInstances": [
+        "2.2.1.a"
+      ],
+      "confidence": "high",
+      "note": "For a toast specifically, \"Timed Toast Without User Control\" and \"Toast Dismisses on Scroll or Focus Change\" are narrower entries under the same criterion."
+    },
+    "content-does-not-remain-visible": {
+      "slug": "content-does-not-remain-visible",
+      "successCriterion": "1.4.13",
+      "pageStateTests": [
+        4
+      ],
+      "catalogOptionText": "Content does not remain visible (1.4.13.a, rgaa-10.13.3)",
+      "catalogInstances": [
+        "1.4.13.a"
+      ],
+      "confidence": "high"
+    },
+    "content-flashing-big": {
+      "slug": "content-flashing-big",
+      "successCriterion": "2.3.1",
+      "pageStateTests": [
+        1
+      ],
+      "catalogOptionText": "Large flashing content is present (2.3.1.a, rgaa-13.7.1, rgaa-13.7.2, rgaa-13.7.3)",
+      "catalogInstances": [
+        "2.3.1.a"
+      ],
+      "confidence": "high",
+      "note": "The branch adds the 25%-of-a-10-degree-field threshold, which is what separates this from \"Flashing content is present\"."
+    },
+    "content-horizontal-scroll": {
+      "slug": "content-horizontal-scroll",
+      "successCriterion": "1.4.10",
+      "pageStateTests": [
+        9
+      ],
+      "catalogOptionText": "Content does not reflow to fit 320px width equivalent (1.4.10.a, rgaa-10.11.1)",
+      "catalogInstances": [
+        "1.4.10.a"
+      ],
+      "confidence": "high"
+    },
+    "content-hover-disappears": {
+      "slug": "content-hover-disappears",
+      "successCriterion": "1.4.13",
+      "pageStateTests": [
+        4
+      ],
+      "catalogOptionText": "Hover content disappearing (1.4.13.a, rgaa-10.13.2)",
+      "catalogInstances": [
+        "1.4.13.a"
+      ],
+      "confidence": "high"
+    },
+    "content-motion-uninterruptible": {
+      "slug": "content-motion-uninterruptible",
+      "successCriterion": "2.2.2",
+      "pageStateTests": [
+        1
+      ],
+      "catalogOptionText": "Moving/blinking content has no pause/stop mechanism (2.2.2.a, rgaa-13.12.3)",
+      "catalogInstances": [
+        "2.2.2.a"
+      ],
+      "confidence": "high",
+      "note": "Chosen over \"Blinking content is present\" and \"Marquee element is present\", which name a cause rather than the missing control the branch tests for."
+    },
+    "content-not-dismissible": {
+      "slug": "content-not-dismissible",
+      "successCriterion": "1.4.13",
+      "pageStateTests": [
+        4
+      ],
+      "catalogOptionText": "Additional content not dismissible (1.4.13.a, rgaa-10.13.1)",
+      "catalogInstances": [
+        "1.4.13.a"
+      ],
+      "confidence": "high"
+    },
+    "content-reflow-content-lost": {
+      "slug": "content-reflow-content-lost",
+      "successCriterion": "1.4.10",
+      "pageStateTests": [
+        9
+      ],
+      "catalogOptionText": "Info or functionality is unavailable at 320px width equivalent (1.4.10.a)",
+      "catalogInstances": [
+        "1.4.10.a"
+      ],
+      "confidence": "high",
+      "note": "Where the loss is specifically caused by content overlapping, \"Info or functionality is lost due to overlapping content at 320px equivalent\" is the more precise entry under the same criterion."
+    },
+    "content-updates-uninterruptible": {
+      "slug": "content-updates-uninterruptible",
+      "successCriterion": "2.2.2",
+      "pageStateTests": [
+        1
+      ],
+      "catalogOptionText": "No control mechanism provided for automatically updating content (2.2.2.b, rgaa-13.1.1)",
+      "catalogInstances": [
+        "2.2.2.b"
+      ],
+      "confidence": "high"
+    },
+    "contrast-graphical-objects-3-1": {
+      "slug": "contrast-graphical-objects-3-1",
+      "successCriterion": "1.4.11",
+      "pageStateTests": [
+        5
+      ],
+      "catalogOptionText": "Graphical object lacks 3 to 1 contrast ratio (1.4.11.c, rgaa-3.3.2, rgaa-3.3.3, rgaa-3.3.4)",
+      "catalogInstances": [
+        "1.4.11.c"
+      ],
+      "confidence": "high",
+      "note": "The 1.4.11.c family also holds flag, logo, crossing-line, anti-aliasing and with-text variants; this is the general entry the branch describes."
+    },
+    "contrast-graphical-objects-icon-3-1": {
+      "slug": "contrast-graphical-objects-icon-3-1",
+      "successCriterion": "1.4.11",
+      "pageStateTests": [
+        5
+      ],
+      "catalogOptionText": "An icon lacks 3 to 1 contrast ratio (1.4.11.c, rgaa-3.3.2)",
+      "catalogInstances": [
+        "1.4.11.c"
+      ],
+      "confidence": "high"
+    },
+    "contrast-link-infocus-3-1": {
+      "slug": "contrast-link-infocus-3-1",
+      "successCriterion": "1.4.3",
+      "pageStateTests": [
+        4
+      ],
+      "catalogOptionText": "Large control text lacks 3:1 contrast ratio on hover or focus (1.4.3.b, rgaa-3.2.3, rgaa-3.2.4)",
+      "catalogInstances": [
+        "1.4.3.b"
+      ],
+      "confidence": "high"
+    },
+    "contrast-link-infocus-4.5-1": {
+      "slug": "contrast-link-infocus-4.5-1",
+      "successCriterion": "1.4.3",
+      "pageStateTests": [
+        4
+      ],
+      "catalogOptionText": "Control text lacks 4.5:1 contrast ratio on hover or focus (1.4.3.a, rgaa-3.2.1, rgaa-3.2.2)",
+      "catalogInstances": [
+        "1.4.3.a"
+      ],
+      "confidence": "high"
+    },
+    "contrast-text-4.5-1-placeholder": {
+      "slug": "contrast-text-4.5-1-placeholder",
+      "successCriterion": "1.4.3",
+      "pageStateTests": [
+        5
+      ],
+      "catalogOptionText": "Placeholder text lacks 4.5:1 contrast ratio (1.4.3.a, rgaa-3.2.1, rgaa-3.2.2, rgaa-3.2.5)",
+      "catalogInstances": [
+        "1.4.3.a"
+      ],
+      "confidence": "high"
+    },
+    "custom-breadcrumb": {
+      "slug": "custom-breadcrumb",
+      "successCriterion": "4.1.2",
+      "pageStateTests": [
+        3
+      ],
+      "catalogOptionText": "Breadcrumb: Breadcrumb region is missing appropriate roles and/or attributes (4.1.2.b, rgaa-7.1.2)",
+      "catalogInstances": [
+        "4.1.2.b"
+      ],
+      "confidence": "high"
+    },
+    "custom-navigation": {
+      "slug": "custom-navigation",
+      "successCriterion": "4.1.2",
+      "pageStateTests": [
+        3
+      ],
+      "catalogOptionText": "Navigation / Menu: Site navigation or application-style menu is missing appropriate roles and/or attributes (4.1.2.b, rgaa-7.1.2)",
+      "catalogInstances": [
+        "4.1.2.b"
+      ],
+      "confidence": "high"
+    },
+    "dragging-no-alternative": {
+      "slug": "dragging-no-alternative",
+      "successCriterion": "2.5.7",
+      "pageStateTests": [
+        15
+      ],
+      "catalogOptionText": "Functionality requires a dragging movement with no alternative (2.5.7.a)",
+      "catalogInstances": [
+        "2.5.7.a"
+      ],
+      "confidence": "high",
+      "note": "The only entry under 2.5.7."
+    },
+    "dual-role": {
+      "slug": "dual-role",
+      "successCriterion": "4.1.2",
+      "pageStateTests": [
+        4
+      ],
+      "byBranch": {
+        "mouse-keyboard-parity": {
+          "when": "mouse click or hover triggers functionality unavailable to the keyboard, or Enter/Space/arrows trigger functionality unavailable to the mouse",
+          "successCriterion": "4.1.2",
+          "catalogOptionText": "The element functions as if it has two roles. (4.1.2.b, rgaa-7.1.1)",
+          "catalogInstances": [
+            "4.1.2.b"
+          ],
+          "confidence": "low",
+          "note": "The entry that matches the slug's name, kept for the branch it half-describes: an element that answers the mouse and the keyboard differently is behaving as if it had two roles. \"Function cannot be performed by keyboard alone\" (2.1.1.a) is closer for the keyboard-unavailable half, but it reports a success criterion the checklist does not cite here and says nothing about the mouse-unavailable half. A human should pick per finding."
+        },
+        "aria-practices": {
+          "when": "the element is a known widget type (accordion, button, checkbox, disclosure, link, listbox, menu, menu bar, radio button or group, slider, spinbutton, toolbar control, tooltip trigger, window splitter) and its keyboard interactions do not follow the WAI-ARIA Authoring Practices for that type",
+          "successCriterion": "4.1.2",
+          "catalogOptionText": "Custom user interface component is not compatible with AT (4.1.2.c)",
+          "catalogInstances": [
+            "4.1.2.c"
+          ],
+          "confidence": "low",
+          "note": "The closest entry, and under the criterion the checklist cites, but it names incompatibility with assistive technology rather than departure from the WAI-ARIA Authoring Practices' keyboard pattern — a widget can follow neither and still be announced correctly. Nothing in the catalog names the Authoring Practices. A human should confirm before filing."
+        }
+      },
+      "confidence": "low"
+    },
+    "focus-fully-obscured": {
+      "slug": "focus-fully-obscured",
+      "successCriterion": "2.4.11",
+      "pageStateTests": [
+        4
+      ],
+      "catalogOptionText": "Focused element is completely covered by other content (2.4.11.a)",
+      "catalogInstances": [
+        "2.4.11.a"
+      ],
+      "confidence": "high"
+    },
+    "focus-lost": {
+      "slug": "focus-lost",
+      "successCriterion": "2.4.3",
+      "pageStateTests": [
+        8
+      ],
+      "catalogOptionText": "Keyboard focus is lost or misplaced due to user interaction or content update (2.4.3.a, rgaa-12.8.2)",
+      "catalogInstances": [
+        "2.4.3.a"
+      ],
+      "confidence": "high"
+    },
+    "focus-on-hidden-item": {
+      "slug": "focus-on-hidden-item",
+      "successCriterion": "2.4.3",
+      "pageStateTests": [
+        4
+      ],
+      "catalogOptionText": "Hidden or empty element receives focus (2.4.3.a, rgaa-10.8.1)",
+      "catalogInstances": [
+        "2.4.3.a"
+      ],
+      "confidence": "high",
+      "note": "The 1.3.2 variant \"Hidden or empty interactive element receives screen reader focus\" is the screen reader reading of the same failure; test 4 is a keyboard test, so the 2.4.3 entry applies."
+    },
+    "focus-submits-form": {
+      "slug": "focus-submits-form",
+      "successCriterion": "3.2.1",
+      "pageStateTests": [
+        4
+      ],
+      "catalogOptionText": "Form is automatically submitted when component receives focus (3.2.1.a, rgaa-7.3.2)",
+      "catalogInstances": [
+        "3.2.1.a"
+      ],
+      "confidence": "high"
+    },
+    "focus-visual-affects-keyboard": {
+      "slug": "focus-visual-affects-keyboard",
+      "successCriterion": "3.2.1",
+      "pageStateTests": [
+        4
+      ],
+      "catalogOptionText": "Keyboard focus is unexpectedly removed or redirected (3.2.1.a, rgaa-7.3.2)",
+      "catalogInstances": [
+        "3.2.1.a"
+      ],
+      "confidence": "high",
+      "note": "\"Screen reader focus is unexpectedly removed or redirected\" is the screen reader variant of the same entry."
+    },
+    "focus-window-launches": {
+      "slug": "focus-window-launches",
+      "successCriterion": "3.2.1",
+      "pageStateTests": [
+        4
+      ],
+      "catalogOptionText": "New window launched when component receives focus (3.2.1.a, rgaa-7.3.2)",
+      "catalogInstances": [
+        "3.2.1.a"
+      ],
+      "confidence": "high"
+    },
+    "form-errors-color-only": {
+      "slug": "form-errors-color-only",
+      "successCriterion": "1.4.1",
+      "pageStateTests": [
+        6
+      ],
+      "catalogOptionText": "Color alone is used to identify error(s) (1.4.1.a, rgaa-3.1.4)",
+      "catalogInstances": [
+        "1.4.1.a"
+      ],
+      "confidence": "high"
+    },
+    "heading-level-order": {
+      "slug": "heading-level-order",
+      "successCriterion": "1.3.1",
+      "pageStateTests": [
+        3
+      ],
+      "catalogOptionText": "Heading levels are out of order (1.3.1.e, rgaa-9.1.1)",
+      "catalogInstances": [
+        "1.3.1.e"
+      ],
+      "confidence": "high"
+    },
+    "id-input-purpose-missing": {
+      "slug": "id-input-purpose-missing",
+      "successCriterion": "1.3.5",
+      "pageStateTests": [
+        7
+      ],
+      "catalogOptionText": "Identify input purpose missing (1.3.5.a, rgaa-11.13.1)",
+      "catalogInstances": [
+        "1.3.5.a"
+      ],
+      "confidence": "high",
+      "note": "The branch covers two cases: no autocomplete attribute (this entry) and an autocomplete value that does not match the WCAG input purpose, which is \"Identify input purpose not accurate\" (1.3.5.a, rgaa-11.13.1). The slug names the missing case."
+    },
+    "information-color": {
+      "slug": "information-color",
+      "successCriterion": "1.4.1",
+      "pageStateTests": [
+        6
+      ],
+      "catalogOptionText": "Color alone is used to convey info (1.4.1.a, rgaa-3.1.1, rgaa-3.1.2, rgaa-3.1.3, rgaa-3.1.4, rgaa-3.1.5, rgaa-3.1.6)",
+      "catalogInstances": [
+        "1.4.1.a"
+      ],
+      "confidence": "high"
+    },
+    "information-requires-hearing": {
+      "slug": "information-requires-hearing",
+      "successCriterion": "1.3.3",
+      "pageStateTests": [
+        6
+      ],
+      "catalogOptionText": "Instructions rely on ability to hear (1.3.3.b)",
+      "catalogInstances": [
+        "1.3.3.b"
+      ],
+      "confidence": "high"
+    },
+    "information-requires-vision": {
+      "slug": "information-requires-vision",
+      "successCriterion": "1.3.3",
+      "pageStateTests": [
+        6
+      ],
+      "catalogOptionText": "Instructions rely on ability to see (1.3.3.a, rgaa-10.9.1, rgaa-10.9.2, rgaa-10.9.3, rgaa-10.9.4, rgaa-10.10.1, rgaa-10.10.2, rgaa-10.10.3, rgaa-10.10.4)",
+      "catalogInstances": [
+        "1.3.3.a"
+      ],
+      "confidence": "high"
+    },
+    "keyboard-character-key-shortcuts": {
+      "slug": "keyboard-character-key-shortcuts",
+      "successCriterion": "2.1.4",
+      "pageStateTests": [
+        14
+      ],
+      "catalogOptionText": "Character key shortcuts exist and cannot be modified or turned off (2.1.4.a, rgaa-12.10.1)",
+      "catalogInstances": [
+        "2.1.4.a"
+      ],
+      "confidence": "high",
+      "note": "The only entry under 2.1.4."
+    },
+    "keyboard-inaccessible": {
+      "slug": "keyboard-inaccessible",
+      "successCriterion": "2.1.1",
+      "pageStateTests": [
+        4
+      ],
+      "catalogOptionText": "Function cannot be performed by keyboard alone (2.1.1.a, rgaa-4.11.2, rgaa-4.11.3, rgaa-4.12.1, rgaa-4.12.2, rgaa-7.3.1, rgaa-12.11.1)",
+      "catalogInstances": [
+        "2.1.1.a"
+      ],
+      "confidence": "high",
+      "note": "The branch carries 2.1.1’s path-dependent-input exception. The near-identical \"Function cannot be performed by keyboard alone - no exception\" is the 2.1.3.a (AAA) entry and does not apply."
+    },
+    "keyboard-shortcut-conflict": {
+      "slug": "keyboard-shortcut-conflict",
+      "successCriterion": "2.1.1",
+      "pageStateTests": [
+        14
+      ],
+      "catalogOptionText": "Action cannot be performed with a screen reader turned on (2.1.1.a, rgaa-7.3.1)",
+      "catalogInstances": [
+        "2.1.1.a"
+      ],
+      "confidence": "low",
+      "note": "No good fit. The catalog has no entry naming a shortcut conflict. This one describes the symptom when the collision is with a screen reader command, which is the common case, but a conflict with a browser shortcut is not covered by it or by anything else under 2.1.1."
+    },
+    "keyboard-trap": {
+      "slug": "keyboard-trap",
+      "successCriterion": "2.1.2",
+      "pageStateTests": [
+        4
+      ],
+      "catalogOptionText": "Keyboard trap (2.1.2.a, rgaa-12.9.1)",
+      "catalogInstances": [
+        "2.1.2.a"
+      ],
+      "confidence": "high",
+      "note": "The only entry under 2.1.2."
+    },
+    "link-insufficient-contrast": {
+      "slug": "link-insufficient-contrast",
+      "successCriterion": "1.4.1",
+      "pageStateTests": [
+        5
+      ],
+      "catalogOptionText": "Link contrast is not at least 3:1 with surrounding text (1.4.1.b, rgaa-10.6.1)",
+      "catalogInstances": [
+        "1.4.1.b"
+      ],
+      "confidence": "high"
+    },
+    "modal-unclosable": {
+      "slug": "modal-unclosable",
+      "successCriterion": "2.1.1",
+      "pageStateTests": [
+        4
+      ],
+      "catalogOptionText": "Method to dismiss modal without submitting data is not accessible (2.1.1.a, rgaa-12.9.1)",
+      "catalogInstances": [
+        "2.1.1.a"
+      ],
+      "confidence": "low",
+      "note": "Ambiguous. The 2.1.1 family holds four modal entries that all describe part of this branch: \"ESC key does not close modal\", \"ESC key is only way to close modal or layer\", \"The modal dialog is missing a close button\", and this one. The branch condition (a component skipped in the focus order) does not say which failure mode applies, so a human should pick."
+    },
+    "motion-actuation-cannot-disable": {
+      "slug": "motion-actuation-cannot-disable",
+      "successCriterion": "2.5.4",
+      "pageStateTests": [
+        15
+      ],
+      "catalogOptionText": "Motion actuation cannot be disabled. (2.5.4.a, rgaa-13.12.3)",
+      "catalogInstances": [
+        "2.5.4.a"
+      ],
+      "confidence": "high"
+    },
+    "motion-actuation-required": {
+      "slug": "motion-actuation-required",
+      "successCriterion": "2.5.4",
+      "pageStateTests": [
+        15
+      ],
+      "catalogOptionText": "Motion actuation required (2.5.4.a, rgaa-13.12.1)",
+      "catalogInstances": [
+        "2.5.4.a"
+      ],
+      "confidence": "high"
+    },
+    "nonvisual-description-inadequate": {
+      "slug": "nonvisual-description-inadequate",
+      "successCriterion": "1.2.1",
+      "pageStateTests": [
+        11
+      ],
+      "catalogOptionText": "Text/audio description is inadequate (1.2.1.b, rgaa-4.2.1, rgaa-4.2.2, rgaa-4.2.3)",
+      "catalogInstances": [
+        "1.2.1.b"
+      ],
+      "confidence": "high"
+    },
+    "nonvisual-description-missing": {
+      "slug": "nonvisual-description-missing",
+      "successCriterion": [
+        "1.2.1",
+        "1.2.3"
+      ],
+      "pageStateTests": [
+        11
+      ],
+      "byCriterion": {
+        "1.2.1": {
+          "catalogOptionText": "No text or audio description available for video-only content (1.2.1.b, rgaa-4.1.3)",
+          "catalogInstances": [
+            "1.2.1.b"
+          ],
+          "confidence": "high"
+        },
+        "1.2.3": {
+          "catalogOptionText": "No text or audio description available for multimedia content (1.2.3.a, rgaa-4.1.3)",
+          "catalogInstances": [
+            "1.2.3.a"
+          ],
+          "confidence": "high"
+        }
+      },
+      "confidence": "high"
+    },
+    "reading-order-hidden-content": {
+      "slug": "reading-order-hidden-content",
+      "successCriterion": "1.3.2",
+      "pageStateTests": [
+        2
+      ],
+      "catalogOptionText": "Hidden content is readable with a screen reader (1.3.2.a)",
+      "catalogInstances": [
+        "1.3.2.a"
+      ],
+      "confidence": "high"
+    },
+    "reading-order-layout-table-non-linear": {
+      "slug": "reading-order-layout-table-non-linear",
+      "successCriterion": "1.3.2",
+      "pageStateTests": [
+        2
+      ],
+      "catalogOptionText": "Layout table reading order is not logical (1.3.2.a, rgaa-5.3.1)",
+      "catalogInstances": [
+        "1.3.2.a"
+      ],
+      "confidence": "high"
+    },
+    "reading-order-not-logical": {
+      "slug": "reading-order-not-logical",
+      "successCriterion": "1.3.2",
+      "pageStateTests": [
+        2
+      ],
+      "catalogOptionText": "Reading order of static content changes meaning (1.3.2.a)",
+      "catalogInstances": [
+        "1.3.2.a"
+      ],
+      "confidence": "high",
+      "note": "\"Reading and visual order are not identical\" is the runner-up; this entry was chosen because the branch is scoped to static content and to a sequence that changes meaning, not to any visual/DOM divergence."
+    },
+    "resize-text-content-lost": {
+      "slug": "resize-text-content-lost",
+      "successCriterion": "1.4.4",
+      "pageStateTests": [
+        9
+      ],
+      "catalogOptionText": "Content is lost at 200% zoom (1.4.4.a, rgaa-10.4.1)",
+      "catalogInstances": [
+        "1.4.4.a"
+      ],
+      "confidence": "high",
+      "note": "\"Content is lost when only the text is zoomed\" covers text-only zoom; the branch specifies user-agent zoom."
+    },
+    "resize-text-function-lost": {
+      "slug": "resize-text-function-lost",
+      "successCriterion": "1.4.4",
+      "pageStateTests": [
+        9
+      ],
+      "catalogOptionText": "Functionality is lost at 200% zoom (1.4.4.a, rgaa-10.4.1)",
+      "catalogInstances": [
+        "1.4.4.a"
+      ],
+      "confidence": "high"
+    },
+    "semantic-data-table": {
+      "slug": "semantic-data-table",
+      "successCriterion": "1.3.1",
+      "pageStateTests": [
+        12
+      ],
+      "byBranch": {
+        "role-markup": {
+          "when": "the table has role=table or role=grid and a row is neither a tr nor role=row, or a data cell is neither td, role=cell, nor role=gridcell within a grid",
+          "successCriterion": "1.3.1",
+          "catalogOptionText": "Grid: Grid is missing appropriate roles and/or attributes (4.1.2.b, rgaa-7.1.2)",
+          "catalogInstances": [
+            "4.1.2.b"
+          ],
+          "confidence": "low",
+          "note": "Criterion shift. Nothing in the 1.3.1 family describes rows or cells missing their roles. This is the only entry in the catalog that does, and it reports 4.1.2.b while the checklist cites 1.3.1, so the record carries a review note saying so."
+        },
+        "header-markup": {
+          "when": "header cells do not carry the markup their header structure requires — One Header: th or columnheader/rowheader; Two Headers: th with scope=col/row or the equivalent role; Irregular: scope and span attributes matching the cells spanned, with corresponding col or colgroup elements",
+          "successCriterion": "1.3.1",
+          "catalogOptionText": "Data table has missing or incomplete header cell markup (1.3.1.b, rgaa-5.7.1, rgaa-5.7.2)",
+          "catalogInstances": [
+            "1.3.1.b"
+          ],
+          "confidence": "high"
+        }
+      },
+      "confidence": "low"
+    },
+    "semantic-hidden": {
+      "slug": "semantic-hidden",
+      "successCriterion": "1.3.1",
+      "pageStateTests": [
+        5
+      ],
+      "catalogOptionText": "aria-hidden=\"true\" is used incorrectly (1.3.2.a)",
+      "catalogInstances": [
+        "1.3.2.a"
+      ],
+      "confidence": "low",
+      "note": "Criterion mismatch. This is the only entry in the whole catalog about aria-hidden and it is an exact match for the branch, but it carries 1.3.2.a while the checklist cites 1.3.1 — so filing it reports a different success criterion. Nothing in the 1.3.1 family describes hidden informative content."
+    },
+    "semantic-nav": {
+      "slug": "semantic-nav",
+      "successCriterion": "1.3.1",
+      "pageStateTests": [
+        3
+      ],
+      "catalogOptionText": "Group of navigation links missing semantics (1.3.1.a)",
+      "catalogInstances": [
+        "1.3.1.a"
+      ],
+      "confidence": "high"
+    },
+    "semantic-role-presentation": {
+      "slug": "semantic-role-presentation",
+      "successCriterion": "1.3.1",
+      "pageStateTests": [
+        5
+      ],
+      "catalogOptionText": "Role=\"presentation\" or \"none\" is used incorrectly (1.3.1.a, rgaa-8.9.1)",
+      "catalogInstances": [
+        "1.3.1.a"
+      ],
+      "confidence": "high"
+    },
+    "speech-accessible-name-mismatch": {
+      "slug": "speech-accessible-name-mismatch",
+      "successCriterion": "2.5.3",
+      "pageStateTests": [
+        4
+      ],
+      "catalogOptionText": "Accessible name does not contain visible label (2.5.3.a, rgaa-6.1.5, rgaa-11.2.5, rgaa-11.9.2)",
+      "catalogInstances": [
+        "2.5.3.a"
+      ],
+      "confidence": "high"
+    },
+    "speech-accessible-name-order": {
+      "slug": "speech-accessible-name-order",
+      "successCriterion": "2.5.3",
+      "pageStateTests": [
+        4
+      ],
+      "catalogOptionText": "Accessible name not same order as visible label (2.5.3.a, rgaa-11.2.5, rgaa-11.9.2)",
+      "catalogInstances": [
+        "2.5.3.a"
+      ],
+      "confidence": "high"
+    },
+    "state-table-sort": {
+      "slug": "state-table-sort",
+      "successCriterion": "4.1.2",
+      "pageStateTests": [
+        12
+      ],
+      "catalogOptionText": "State: Table sort state is missing or incorrect (4.1.2.a, rgaa-7.1.1)",
+      "catalogInstances": [
+        "4.1.2.a"
+      ],
+      "confidence": "high"
+    },
+    "status-msg-not-auto-announced": {
+      "slug": "status-msg-not-auto-announced",
+      "successCriterion": "4.1.3",
+      "pageStateTests": [
+        10
+      ],
+      "catalogOptionText": "Status message not automatically announced (4.1.3.a, rgaa-7.5.1, rgaa-7.5.2, rgaa-7.5.3)",
+      "catalogInstances": [
+        "4.1.3.a"
+      ],
+      "confidence": "high",
+      "note": "The only entry under 4.1.3."
+    },
+    "structure-major-problems": {
+      "slug": "structure-major-problems",
+      "successCriterion": "2.4.1",
+      "pageStateTests": [
+        3
+      ],
+      "catalogOptionText": "Page is missing skip link, headings or landmarks (2.4.1.a, rgaa-12.6.1, rgaa-9.1.3)",
+      "catalogInstances": [
+        "2.4.1.a"
+      ],
+      "confidence": "high"
+    },
+    "structure-skiplink-broken": {
+      "slug": "structure-skiplink-broken",
+      "successCriterion": "2.4.1",
+      "pageStateTests": [
+        3
+      ],
+      "catalogOptionText": "Skip link is broken (2.4.1.a, rgaa-12.7.2)",
+      "catalogInstances": [
+        "2.4.1.a"
+      ],
+      "confidence": "high"
+    },
+    "tab-order-illogical": {
+      "slug": "tab-order-illogical",
+      "successCriterion": "2.4.3",
+      "pageStateTests": [
+        4
+      ],
+      "catalogOptionText": "Keyboard focus order is not logical (2.4.3.a, rgaa-12.8.1)",
+      "catalogInstances": [
+        "2.4.3.a"
+      ],
+      "confidence": "high"
+    },
+    "table-complex-association-incorrect": {
+      "slug": "table-complex-association-incorrect",
+      "successCriterion": "1.3.1",
+      "pageStateTests": [
+        12
+      ],
+      "catalogOptionText": "Complex table headers-id association is incorrect (1.3.1.b, rgaa-5.7.4)",
+      "catalogInstances": [
+        "1.3.1.b"
+      ],
+      "confidence": "high"
+    },
+    "table-complex-no-header-associations": {
+      "slug": "table-complex-no-header-associations",
+      "successCriterion": "1.3.1",
+      "pageStateTests": [
+        12
+      ],
+      "catalogOptionText": "Complex table is missing headers-id association (1.3.1.b, rgaa-5.6.4, rgaa-5.7.4)",
+      "catalogInstances": [
+        "1.3.1.b"
+      ],
+      "confidence": "high"
+    },
+    "table-data-headers-captiony": {
+      "slug": "table-data-headers-captiony",
+      "successCriterion": "1.3.1",
+      "pageStateTests": [
+        12
+      ],
+      "catalogOptionText": "First row of data table is really a caption (1.3.1.b)",
+      "catalogInstances": [
+        "1.3.1.b"
+      ],
+      "confidence": "high"
+    },
+    "target-size-small": {
+      "slug": "target-size-small",
+      "successCriterion": "2.5.8",
+      "pageStateTests": [
+        16
+      ],
+      "catalogOptionText": "Target does not meet minimum size or spacing (2.5.8.a)",
+      "catalogInstances": [
+        "2.5.8.a"
+      ],
+      "confidence": "high",
+      "note": "The 24x24 threshold the branch names is 2.5.8 Target Size (Minimum). \"Target is not 44x44 px in size or spacing\" sits under the same instance id but states the 2.5.5 AAA threshold."
+    },
+    "text-alternative-inadequate": {
+      "slug": "text-alternative-inadequate",
+      "successCriterion": "1.2.3",
+      "pageStateTests": [
+        11
+      ],
+      "catalogOptionText": "Text description is incorrect or inadequate (1.2.3.a, rgaa-1.3.1)",
+      "catalogInstances": [
+        "1.2.3.a"
+      ],
+      "confidence": "high"
+    },
+    "text-spacing-cut-off": {
+      "slug": "text-spacing-cut-off",
+      "successCriterion": "1.4.12",
+      "pageStateTests": [
+        9
+      ],
+      "catalogOptionText": "Text spacing content cut off (1.4.12.a, rgaa-10.12.1)",
+      "catalogInstances": [
+        "1.4.12.a"
+      ],
+      "confidence": "high"
+    },
+    "text-spacing-overlap": {
+      "slug": "text-spacing-overlap",
+      "successCriterion": "1.4.12",
+      "pageStateTests": [
+        9
+      ],
+      "catalogOptionText": "Text spacing content overlaps (1.4.12.a, rgaa-10.12.1)",
+      "catalogInstances": [
+        "1.4.12.a"
+      ],
+      "confidence": "high"
+    },
+    "text-transcript-inadequate": {
+      "slug": "text-transcript-inadequate",
+      "successCriterion": "1.2.1",
+      "pageStateTests": [
+        11
+      ],
+      "catalogOptionText": "Transcript is incorrect or inadequate (1.2.1.a, rgaa-4.1.2)",
+      "catalogInstances": [
+        "1.2.1.a"
+      ],
+      "confidence": "high"
+    },
+    "text-transcript-incomplete": {
+      "slug": "text-transcript-incomplete",
+      "successCriterion": "1.2.1",
+      "pageStateTests": [
+        11
+      ],
+      "catalogOptionText": "Transcript does not contain all dialogue (1.2.1.a, rgaa-4.1.2)",
+      "catalogInstances": [
+        "1.2.1.a"
+      ],
+      "confidence": "high"
+    },
+    "text-transcript-missing": {
+      "slug": "text-transcript-missing",
+      "successCriterion": "1.2.1",
+      "pageStateTests": [
+        11
+      ],
+      "catalogOptionText": "Transcript is not provided (1.2.1.a, rgaa-4.1.1)",
+      "catalogInstances": [
+        "1.2.1.a"
+      ],
+      "confidence": "high"
+    },
+    "text-transcript-undescribed-effects": {
+      "slug": "text-transcript-undescribed-effects",
+      "successCriterion": "1.2.1",
+      "pageStateTests": [
+        11
+      ],
+      "catalogOptionText": "Transcript does not describe important sounds (1.2.1.a, rgaa-4.1.2)",
+      "catalogInstances": [
+        "1.2.1.a"
+      ],
+      "confidence": "high"
+    },
+    "text-transcript-unidentified-speakers": {
+      "slug": "text-transcript-unidentified-speakers",
+      "successCriterion": "1.2.1",
+      "pageStateTests": [
+        11
+      ],
+      "catalogOptionText": "Transcript does not identify all speakers (1.2.1.a, rgaa-4.1.2)",
+      "catalogInstances": [
+        "1.2.1.a"
+      ],
+      "confidence": "high"
+    },
+    "timeout-extension-grace": {
+      "slug": "timeout-extension-grace",
+      "successCriterion": "2.2.1",
+      "pageStateTests": [
+        13
+      ],
+      "catalogOptionText": "User is not given 20 secs to extend timeout (2.2.1.a, rgaa-13.1.3)",
+      "catalogInstances": [
+        "2.2.1.a"
+      ],
+      "confidence": "high"
+    },
+    "timeout-no-warning": {
+      "slug": "timeout-no-warning",
+      "successCriterion": "2.2.1",
+      "pageStateTests": [
+        13
+      ],
+      "catalogOptionText": "User is not warned of timeout (2.2.1.a, rgaa-13.1.4)",
+      "catalogInstances": [
+        "2.2.1.a"
+      ],
+      "confidence": "high"
+    },
+    "timeout-not-announced": {
+      "slug": "timeout-not-announced",
+      "successCriterion": "2.2.1",
+      "pageStateTests": [
+        13
+      ],
+      "catalogOptionText": "Screen reader user is not warned of timeout (2.2.1.a)",
+      "catalogInstances": [
+        "2.2.1.a"
+      ],
+      "confidence": "high"
+    },
+    "timeout-not-extensible": {
+      "slug": "timeout-not-extensible",
+      "successCriterion": "2.2.1",
+      "pageStateTests": [
+        13
+      ],
+      "catalogOptionText": "User cannot turn off, adjust or extend time (2.2.1.a, rgaa-13.1.3)",
+      "catalogInstances": [
+        "2.2.1.a"
+      ],
+      "confidence": "high"
+    },
+    "timeout-screenreader": {
+      "slug": "timeout-screenreader",
+      "successCriterion": "2.2.1",
+      "pageStateTests": [
+        13
+      ],
+      "catalogOptionText": "Timeout mechanism is not screen reader accessible (2.2.1.a, rgaa-13.1.4)",
+      "catalogInstances": [
+        "2.2.1.a"
+      ],
+      "confidence": "high",
+      "note": "The branch requires the mechanism to be reachable by keyboard and screen reader together; where only the keyboard fails, \"Timeout mechanism is not keyboard accessible\" is the entry under the same criterion."
+    },
+    "touch-down-event": {
+      "slug": "touch-down-event",
+      "successCriterion": "2.5.2",
+      "pageStateTests": [
+        4
+      ],
+      "catalogOptionText": "Irreversible action occurs on down event (2.5.2.a, rgaa-13.11.1)",
+      "catalogInstances": [
+        "2.5.2.a"
+      ],
+      "confidence": "high",
+      "note": "The only entry under 2.5.2."
+    },
+    "touch-path-based-gesture-required": {
+      "slug": "touch-path-based-gesture-required",
+      "successCriterion": "2.5.1",
+      "pageStateTests": [
+        15
+      ],
+      "catalogOptionText": "Path-based gesture required (2.5.1.a, rgaa-13.10.2)",
+      "catalogInstances": [
+        "2.5.1.a"
+      ],
+      "confidence": "high"
+    },
+    "touch-single-point-action-not-avail": {
+      "slug": "touch-single-point-action-not-avail",
+      "successCriterion": "2.5.1",
+      "pageStateTests": [
+        15
+      ],
+      "catalogOptionText": "Single-pointer action not available  (2.5.1.a, rgaa-13.10.1)",
+      "catalogInstances": [
+        "2.5.1.a"
+      ],
+      "confidence": "high",
+      "note": "The catalog label carries a trailing double space before the parenthesis; the option text here is verbatim."
+    },
+    "unexpected-change-on-focus": {
+      "slug": "unexpected-change-on-focus",
+      "successCriterion": "3.2.1",
+      "pageStateTests": [
+        4
+      ],
+      "catalogOptionText": "There is a substantial, unannounced context change on focus (3.2.1.a, rgaa-7.3.2)",
+      "catalogInstances": [
+        "3.2.1.a"
+      ],
+      "confidence": "high",
+      "note": "The near-identical \"...on screen reader focus\" entry is the screen reader variant; test 4 runs by keyboard."
+    },
+    "unexpected-change-on-interaction": {
+      "slug": "unexpected-change-on-interaction",
+      "successCriterion": "3.2.2",
+      "pageStateTests": [
+        4
+      ],
+      "catalogOptionText": "Form field causes unexpected change (3.2.2.a, rgaa-7.4.1, rgaa-13.2.1)",
+      "catalogInstances": [
+        "3.2.2.a"
+      ],
+      "confidence": "low",
+      "note": "No good fit. The branch is generic — changing the setting of any component causes an unwarned change of context — but the 3.2.2 family offers only form-field and dropdown specifics. This entry under-describes a non-form widget. The exact wording exists as \"A change of context not requested\" but sits under 3.2.5.a, so filing it would report a different success criterion than the checklist cites."
+    },
+    "unexpected-change-select": {
+      "slug": "unexpected-change-select",
+      "successCriterion": "3.2.2",
+      "pageStateTests": [
+        4
+      ],
+      "catalogOptionText": "Arrow keys activate dropdown menu options (3.2.2.a, rgaa-7.4.1)",
+      "catalogInstances": [
+        "3.2.2.a"
+      ],
+      "confidence": "low",
+      "note": "Ambiguous with \"Form field causes unexpected change\", which is the better literal match for a select whose value change fires a context change; this entry is narrower, covering only the arrow-key case. Both sit under 3.2.2.a."
+    },
+    "unexpected-window-launch": {
+      "slug": "unexpected-window-launch",
+      "successCriterion": "3.2.2",
+      "pageStateTests": [
+        4
+      ],
+      "catalogOptionText": "New window opens automatically without warning (3.2.2.a, rgaa-7.4.1)",
+      "catalogInstances": [
+        "3.2.2.a"
+      ],
+      "confidence": "high",
+      "note": "\"Links opens new window without warning\" is scoped to links; this branch is about changing the setting of any component."
+    }
+  }
+}

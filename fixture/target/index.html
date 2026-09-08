@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quarterly accessibility notes</title>
+  <style>
+    body { font-family: Georgia, serif; margin: 2rem; max-width: 46rem; }
+    .fake-list { margin: 0 0 0 1rem; }
+    .banner { font-size: 1.6rem; font-weight: bold; margin: 1.5rem 0 0.5rem; }
+    table { border-collapse: collapse; }
+    td, th { border: 1px solid #999; padding: 0.3rem 0.6rem; }
+    video { max-width: 100%; }
+  </style>
+</head>
+<body>
+  <!--
+    The page state v0 audits.
+
+    It is a page state rather than a demo: one URL, reachable by URL alone, so
+    `restore_page` can reload it between units without the state changing under
+    the run. What it carries is chosen so that both v0 units have real work:
+
+      the Structure IGT   headings, a real list and a fake one, an untagged
+                          French passage, and a block styled to look like a
+                          heading without being one
+      page state test 11  a recorded video with audio, no captions track and no
+                          transcript
+      the automated scan  a vague link and an image with no text alternative, so
+                          the ledger baseline is not zero
+
+    Point the fixture at a real Amex page state with `--url=`; nothing in the
+    tool layer or the graph knows about this file.
+  -->
+  <h1>Quarterly accessibility notes</h1>
+
+  <p>An overview of the quarter, written to give the guided tests something to
+    read. It runs long enough to wrap at a narrow viewport.</p>
+
+  <div class="banner">Looks like a heading, is not one</div>
+
+  <h2>Findings</h2>
+  <ul>
+    <li>Contrast on the secondary buttons</li>
+    <li>Focus order in the settings drawer</li>
+    <li>Missing landmarks on the dashboard</li>
+  </ul>
+
+  <h2>Notes that look like a list</h2>
+  <p class="fake-list">
+    - first note<br>
+    - second note<br>
+    - third note
+  </p>
+
+  <h3>A passage in another language</h3>
+  <p>Les rapports trimestriels sont publies chaque annee au mois de janvier,
+    et la version francaise n'est pas balisee comme telle.</p>
+
+  <h2>Quarterly briefing</h2>
+  <p>A three second recording of the quarter's summary, with narration.</p>
+  <video id="briefing" controls width="320" height="180">
+    <source src="quarterly-briefing.mp4" type="video/mp4">
+  </video>
+
+  <h2>Reference</h2>
+  <p>For the full breakdown, <a id="vague-link" href="#briefing">click here</a>.</p>
+  <p><img id="chart" src="data:image/gif;base64,R0lGODlhZABGAIAAAMzMzP///yH5BAAAAAAALAAAAABkAEYAAAIkjI+py+0Po5y02ouz3rz7D4biSJbmiabqyrbuC8fyTNf2jRcAOw==" width="100" height="70"></p>
+
+  <table>
+    <tr><td>Q1</td><td>18 issues</td></tr>
+    <tr><td>Q2</td><td>11 issues</td></tr>
+  </table>
+</body>
+</html>

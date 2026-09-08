@@ -23,11 +23,15 @@ AXE_TARGET_URL ?= http://127.0.0.1:$(TARGET_PORT)/
 # moved, not a runtime-specific binding — the model id is the full repository
 # name the endpoint lists, `docker.io/ai/<name>:<tag>`. The key is required by
 # the client and ignored by the server.
-AXE_MODEL     ?= openai:docker.io/ai/gemma4:e2b
+# No `openai:` prefix. `init_chat_model` splits that off the front, and a model
+# id from any registry already contains a colon — so the prefix made overriding
+# AXE_MODEL with a real id fail to infer a provider. The provider is named in
+# the kwargs below instead, where overriding the model cannot remove it.
+AXE_MODEL     ?= docker.io/ai/gemma4:e2b
 # Whatever the provider needs said to it. Nothing here sets a context window:
 # Docker Model Runner loads this model with 131072 tokens per slot and takes the
 # size from `docker model configure --context-size`, not from the request.
-AXE_MODEL_KWARGS ?= {"base_url": "$(MODEL_RUNNER_URL)", "api_key": "docker"}
+AXE_MODEL_KWARGS ?= {"model_provider": "openai", "base_url": "$(MODEL_RUNNER_URL)", "api_key": "docker"}
 # Host-side, because the model is host-side: the container is the fixture and
 # holds no model, so nothing in docker/ reaches this URL. If the graph is ever
 # moved inside a container it will need `--add-host

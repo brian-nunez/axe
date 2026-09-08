@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 # The fixture container: a browser that is already correct.
 #
 # Base is Playwright's own image, pinned by digest to v1.58.0. That pin is load
@@ -69,7 +70,19 @@ ENV PW_CHROMIUM_ATTACH_TO_OTHER=1
 WORKDIR /opt/axe
 
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev --no-audit --no-fund
+# The registry credentials and the CA arrive as BuildKit secrets, not as build
+# args or a COPY. A private registry needs both to answer, and an auth token
+# baked into a layer is a token published with the image — `docker history`
+# shows build args, and a copied .npmrc survives in the filesystem.
+#
+# Both are optional: with neither mounted this is an ordinary public install.
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc,required=false \
+    --mount=type=secret,id=ca,target=/usr/local/share/ca-certificates/corp.crt,required=false \
+    sh -eux -c 'if [ -f /usr/local/share/ca-certificates/corp.crt ]; then \
+                    update-ca-certificates >/dev/null 2>&1 || true; \
+                    export NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/corp.crt; \
+                fi; \
+                npm ci --omit=dev --no-audit --no-fund'
 
 # The extension is built into the image from the vendored CRX, so the running
 # container never fetches one. build-axe-extension.py verifies the digest and the

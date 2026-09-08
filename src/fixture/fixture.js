@@ -146,7 +146,23 @@ export class Fixture {
       // panel that cannot file anything.
       const savedAfter = new Date(Date.now() - 60_000).toISOString();
       await press(frame, 'Save Test', { settleMs: 3_000 });
-      await frame.locator('[role=dialog] input').first().fill(testName);
+      // A text field in the save dialog, named exactly. `[role=dialog] input`
+      // took the first input in *any* open dialog, which on a run where an
+      // onboarding dialog was still up meant typing the test name into a terms
+      // checkbox — an error that names neither the real problem nor where it is.
+      const nameField = frame
+        .locator('[role=dialog].Dialog--show')
+        .last()
+        .locator('input[type=text], input:not([type])')
+        .first();
+      if ((await nameField.count()) === 0) {
+        const open = await frame.locator('[role=dialog].Dialog--show').count();
+        throw new Error(
+          `the save dialog has no text field (${open} dialog(s) open) — ` +
+            'an earlier dialog is probably still showing',
+        );
+      }
+      await nameField.fill(testName);
       await settle(1_000);
       await press(frame, 'Save', { within: '[role=dialog]', settleMs: SAVE_SETTLE_MS });
       // Polled for the same reason the scan total is: the save round-trips to the

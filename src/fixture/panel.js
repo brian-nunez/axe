@@ -141,16 +141,51 @@ export async function clearOnboarding(frame) {
         .catch(() => {});
     }
 
-    const action = dialog
-      .locator(
-        'button:has-text("Start using axe DevTools"), button:has-text("Got it"), ' +
-          'button:has-text("Continue"), button:has-text("Close")',
-      )
-      .first();
-    if (await action.count()) await action.click().catch(() => {});
-    else await frame.press('body', 'Escape').catch(() => {});
+    // Dispatched on the element, never a pointer click. The panel's own tooltip
+    // layer swallows a real click on its buttons — no error, no effect — so a
+    // pointer click here dismissed nothing and the loop simply ran six times
+    // against the same dialog and reported all six as cleared.
+    const acted = await dialog.evaluate((node) => {
+      const wanted = [
+        'start using axe devtools',
+        'got it',
+        'continue',
+        'close',
+        'accept',
+        'ok',
+      ];
+      const button = [...node.querySelectorAll('button')].find((b) => {
+        const label = (b.getAttribute('aria-label') ?? b.textContent ?? '').trim().toLowerCase();
+        return !b.disabled && wanted.some((w) => label.includes(w));
+      });
+      if (!button) return null;
+      button.click();
+      return (button.getAttribute('aria-label') ?? button.textContent ?? '').trim();
+    });
 
-    await settle(2_000);
+    if (acted === null) await frame.press('body', 'Escape').catch(() => {});
+    await settle(1_500);
+
+    // A dialog that is still up did not clear, and saying so beats reporting it
+    // as cleared six times: the run is about to audit a page it cannot reach.
+    const stillOpen =
+      (await frame.locator('[role=dialog].Dialog--show').count()) > 0 &&
+      (
+        await frame
+          .locator('[role=dialog].Dialog--show')
+          .first()
+          .locator('h1,h2,h3,[id^=dialog-title]')
+          .first()
+          .textContent()
+          .catch(() => null)
+      )?.trim() === title;
+
+    if (stillOpen) {
+      throw new Error(
+        `onboarding dialog ${JSON.stringify(title)} did not close` +
+          (acted ? ` after pressing ${JSON.stringify(acted)}` : ' and offered no button'),
+      );
+    }
     cleared.push(title);
   }
   return cleared;

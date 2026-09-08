@@ -229,7 +229,9 @@ image:
 		--build-arg HTTPS_PROXY="$$HTTPS_PROXY" \
 		--build-arg NO_PROXY="$$NO_PROXY" \
 		--build-arg NPM_CONFIG_REGISTRY="$$NPM_CONFIG_REGISTRY" \
-		--build-arg NODE_EXTRA_CA_CERTS="$$NODE_EXTRA_CA_CERTS" \
+		$$( [ -f "$$HOME/.npmrc" ] && echo --secret id=npmrc,src="$$HOME/.npmrc" ) \
+		$$( [ -n "$$NODE_EXTRA_CA_CERTS" ] && [ -f "$$NODE_EXTRA_CA_CERTS" ] \
+		    && echo --secret id=ca,src="$$NODE_EXTRA_CA_CERTS" ) \
 		-t $(IMAGE) .
 
 # clean: remove build output

@@ -29,6 +29,19 @@ COPY --from=ghcr.io/astral-sh/uv:0.9.3 /uv /uvx /usr/local/bin/
 ENV UV_PYTHON_DOWNLOADS=never \
     UV_LINK_MODE=copy
 
+# A corporate network reaches the outside through a proxy and an internal index.
+# These are build args rather than baked values: the image must not carry a
+# proxy URL or credentials, and a build host outside that network passes none.
+ARG HTTP_PROXY=
+ARG HTTPS_PROXY=
+ARG NO_PROXY=
+ARG NPM_CONFIG_REGISTRY=
+ARG NODE_EXTRA_CA_CERTS=
+ENV HTTP_PROXY=${HTTP_PROXY} HTTPS_PROXY=${HTTPS_PROXY} NO_PROXY=${NO_PROXY} \
+    http_proxy=${HTTP_PROXY} https_proxy=${HTTPS_PROXY} no_proxy=${NO_PROXY} \
+    NPM_CONFIG_REGISTRY=${NPM_CONFIG_REGISTRY} \
+    NODE_EXTRA_CA_CERTS=${NODE_EXTRA_CA_CERTS}
+
 # The source revision is a build argument because a running image cannot read
 # the repository it was built from, and a run's provenance is worthless if it
 # cannot name the code that produced it.

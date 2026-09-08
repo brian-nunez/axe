@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import os
+import pathlib
 from pathlib import Path
 from typing import Any
 
@@ -22,12 +23,52 @@ REPO = Path(__file__).resolve().parent.parent
 
 
 def server_command() -> dict[str, Any]:
-    extension = os.environ.get("AXE_EXTENSION_DIR", str(REPO / "build" / "axe-extension"))
+    """How the graph starts the MCP server that is the fixture.
+
+    Two shapes, one transport. `AXE_FIXTURE=docker` runs the built image with
+    `docker run -i`, which is what ticket 005 settled: the container holds the
+    browser, the extension and the pinned policy, and speaks JSON-RPC over the
+    stdio it was started on. Anything else runs `node` against the working tree,
+    which is faster to iterate on and needs no rebuild.
+
+    The container is the deployable artefact. The host path is a development
+    convenience, and the two are not interchangeable — only the container
+    carries the managed policy, so only the container reflects production
+    settings.
+    """
     url = os.environ.get("AXE_TARGET_URL", "http://127.0.0.1:8731/")
+    name = os.environ.get("AXE_TEST_NAME")
+    headed = os.environ.get("AXE_HEADED") == "1"
+
+    if os.environ.get("AXE_FIXTURE", "host") == "docker":
+        image = os.environ.get("AXE_IMAGE", "axedevtools-fixture:005")
+        runs = pathlib.Path(os.environ.get("AXE_RUNS_DIR", REPO / "build" / "runs")).resolve()
+        runs.mkdir(parents=True, exist_ok=True)
+        args = ["run", "--rm", "-i", "--env-file", str(REPO / ".env")]
+        for var in (
+            "AXE_TARGET_URL", "AXE_TEST_NAME", "AXE_HEADED",
+            "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY", "NODE_EXTRA_CA_CERTS",
+        ):
+            if os.environ.get(var):
+                args += ["-e", f"{var}={os.environ[var]}"]
+        # The target may be served on the host; a container reaches it by name.
+        args += ["--add-host", "host.docker.internal:host-gateway"]
+        args += ["-e", f"AXE_IMAGE_REF={image}"]
+        args += ["-v", f"{runs}:/opt/axe/runs"]
+        args.append(image)
+        return {
+            "transport": "stdio",
+            "command": os.environ.get("AXE_DOCKER", "docker"),
+            "args": args,
+            "env": dict(os.environ),
+            "cwd": str(REPO),
+        }
+
+    extension = os.environ.get("AXE_EXTENSION_DIR", str(REPO / "build" / "axe-extension"))
     args = [str(REPO / "fixture" / "mcp-server.js"), f"--extension={extension}", f"--url={url}"]
-    if name := os.environ.get("AXE_TEST_NAME"):
+    if name:
         args.append(f"--name={name}")
-    if os.environ.get("AXE_HEADED") == "1":
+    if headed:
         args.append("--headed")
     return {
         "transport": "stdio",

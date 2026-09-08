@@ -106,7 +106,7 @@ keepalive: install extension env
 venv: .venv/pyvenv.cfg
 
 .venv/pyvenv.cfg: pyproject.toml uv.lock .python-version
-	$(UV) sync --frozen --quiet
+	$(UV) sync --quiet
 	@touch .venv/pyvenv.cfg
 
 ## serve-target: serve the bundled v0 page state, in the foreground
@@ -125,15 +125,22 @@ V0_RUN = \
 	server=$$!; trap "kill $$server 2>/dev/null" EXIT INT TERM; sleep 1; \
 	AXE_EXTENSION_DIR=$(EXTENSION_DIR) AXE_TARGET_URL=$(AXE_TARGET_URL)
 
+## v0-docker: the same run, with the fixture as the built container
+v0-docker: image env venv model
+	@$(LOAD_ENV) AXE_FIXTURE=docker AXE_IMAGE=$(IMAGE) \
+		AXE_TARGET_URL=$(AXE_TARGET_URL) \
+		AXE_MODEL=$(AXE_MODEL) AXE_MODEL_KWARGS='$(AXE_MODEL_KWARGS)' \
+		$(UV) run --quiet python -m graph.run $(V0_ARGS)
+
 ## v0: run both v0 units end to end against AXE_MODEL, and print the draft
 v0: install extension env venv model
 	@$(LOAD_ENV) $(V0_RUN) AXE_MODEL=$(AXE_MODEL) AXE_MODEL_KWARGS='$(AXE_MODEL_KWARGS)' \
-		$(UV) run --frozen --quiet python -m graph.run $(V0_ARGS)
+		$(UV) run --quiet python -m graph.run $(V0_ARGS)
 
 ## v0-scripted: the same run with a scripted leaf in place of the model
 v0-scripted: install extension env venv
 	@$(LOAD_ENV) $(V0_RUN) AXE_SCRIPT=$(TARGET_DIR)/answers.json \
-		$(UV) run --frozen --quiet python -m graph.run --leaf scripted $(V0_ARGS)
+		$(UV) run --quiet python -m graph.run --leaf scripted $(V0_ARGS)
 
 ## probe: survey what the axe panel offers as automation hooks (throwaway)
 probe: install extension env
@@ -175,6 +182,11 @@ crx-latest:
 image:
 	docker build -f docker/Dockerfile \
 		--build-arg AXE_SOURCE_REVISION=$$(git rev-parse --short HEAD 2>/dev/null || echo unknown) \
+		--build-arg HTTP_PROXY="$$HTTP_PROXY" \
+		--build-arg HTTPS_PROXY="$$HTTPS_PROXY" \
+		--build-arg NO_PROXY="$$NO_PROXY" \
+		--build-arg NPM_CONFIG_REGISTRY="$$NPM_CONFIG_REGISTRY" \
+		--build-arg NODE_EXTRA_CA_CERTS="$$NODE_EXTRA_CA_CERTS" \
 		-t $(IMAGE) .
 
 ## fixture: run the fixture container for a human to watch through noVNC

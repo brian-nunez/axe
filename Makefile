@@ -76,17 +76,26 @@ env:
 # Only meaningful for Docker Model Runner, so the check runs only when the
 # kwargs still point at it — overriding AXE_MODEL to a hosted provider silently
 # skips it rather than failing on a runtime that is not in play.
+#
+# The runtime being down is a hard failure: nothing can run. A model id the
+# endpoint does not list is only a warning, because registries normalise ids
+# differently — a private mirror reports a path this Makefile cannot predict,
+# and refusing to start on a name mismatch blocks a setup that works.
+MODEL_TAG = $(notdir $(patsubst openai:%,%,$(AXE_MODEL)))
 model:
 	@case '$(AXE_MODEL_KWARGS)' in \
 	*$(MODEL_RUNNER_URL)*) \
 		curl -sf $(MODEL_RUNNER_URL)/models >/dev/null \
 			|| { echo "Docker Model Runner is not answering at $(MODEL_RUNNER_URL)"; \
 			     echo "start it with 'docker desktop enable model-runner'"; exit 1; }; \
-		curl -sf $(MODEL_RUNNER_URL)/models \
-			| grep -q '"$(patsubst openai:%,%,$(AXE_MODEL))"' \
-			|| { echo "$(patsubst openai:%,%,$(AXE_MODEL)) is not pulled"; \
-			     echo "pull it with 'docker model pull $(patsubst openai:docker.io/ai/%,%,$(AXE_MODEL))'"; exit 1; }; \
-		echo "model ok — $(AXE_MODEL) on $(MODEL_RUNNER_URL)";; \
+		if curl -sf $(MODEL_RUNNER_URL)/models | grep -q '$(MODEL_TAG)'; then \
+			echo "model ok — $(AXE_MODEL) on $(MODEL_RUNNER_URL)"; \
+		else \
+			echo "warning: the runtime is up but does not list $(MODEL_TAG)"; \
+			echo "         it may be served under another id — check with:"; \
+			echo "           curl -s $(MODEL_RUNNER_URL)/models | jq -r '.data[].id'"; \
+			echo "         continuing; the run will fail with the provider's own error if it is absent"; \
+		fi;; \
 	*) echo "model check skipped — AXE_MODEL_KWARGS does not name $(MODEL_RUNNER_URL)";; \
 	esac
 

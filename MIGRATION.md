@@ -15,6 +15,7 @@ Work the phases in order. Each ends in a check that fails loudly rather than a s
 | Network reach to that origin from wherever the container runs | your network team. VPN or allowlist |
 | The private CA bundle, if the instance uses one | your PKI team |
 | A production model API key | still missing everywhere. See Phase 6 |
+| `uv` on the build host, and `node` | `uv` drives all Python. The image build needs no network for Python — `UV_PYTHON_DOWNLOADS=never` and the base image's own `python3` — so a build host with no egress is fine |
 
 If the instance is unreachable from a developer machine, that is itself the answer and it changes the plan — say so and stop at Phase 1.
 

@@ -55,7 +55,7 @@ log "run     ${AXE_RUN_ID} -> ${AXE_RUN_DIR}"
 # Written as root, owned by root, world-readable. The browser runs as pwuser and
 # must not be able to rewrite its own policy.
 if [[ "$(id -u)" -eq 0 ]]; then
-    python3 /opt/axe/docker/render-policy.py >&2
+    uv run --no-project --python python3 /opt/axe/docker/render-policy.py >&2
 else
     log "WARN   running as $(id -un); leaving ${AXE_POLICY_FILE:-the policy file} as it is"
 fi
@@ -127,7 +127,7 @@ fi
 # After the policy is rendered, because the policy document is part of what
 # replay has to restore; before the fixture, because a run that dies during
 # start-up still has to be explainable.
-python3 /opt/axe/docker/record-provenance.py
+uv run --no-project --python python3 /opt/axe/docker/record-provenance.py
 
 # --- the fixture ----------------------------------------------------------
 # The fixture owns the browser for the life of a run: it launches Chromium with

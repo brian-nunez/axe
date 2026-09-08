@@ -19,6 +19,16 @@ RUN apt-get update \
         x11-utils=7.7+6build2 \
     && rm -rf /var/lib/apt/lists/*
 
+# uv runs the two stdlib-only scripts here, so one runner drives Python
+# everywhere. It does NOT install an interpreter: the container holds no graph
+# and no dependencies, the base image already ships python3, and downloading a
+# CPython at build time is the unpinned network fetch this build exists to
+# avoid. UV_PYTHON_DOWNLOADS=never makes that a hard failure rather than a
+# silent reach for the network.
+COPY --from=ghcr.io/astral-sh/uv:0.9.3 /uv /uvx /usr/local/bin/
+ENV UV_PYTHON_DOWNLOADS=never \
+    UV_LINK_MODE=copy
+
 # The source revision is a build argument because a running image cannot read
 # the repository it was built from, and a run's provenance is worthless if it
 # cannot name the code that produced it.
@@ -55,7 +65,7 @@ RUN npm ci --omit=dev --no-audit --no-fund
 # Without that ID, managed policy silently does nothing.
 COPY tools/ ./tools/
 COPY vendor/ ./vendor/
-RUN python3 tools/build-axe-extension.py \
+RUN uv run --no-project --python python3 tools/build-axe-extension.py \
         --lock vendor/axe-devtools/axe-extension.lock.json \
         --dest "${AXE_EXTENSION_DIR}" \
     && test -s "${AXE_EXTENSION_DIR}/schema.json"

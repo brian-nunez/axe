@@ -25,6 +25,8 @@ make help           # everything else
 
 Anything touching credentials runs as `sh -c 'set -a && . ./.env && set +a && <command>'`.
 
+**Python goes through `uv`, never bare `python3`.** `pyproject.toml` plus `uv.lock` pin the graph's dependencies and their whole transitive tree; `.python-version` pins the interpreter. The graph runs under `uv run --frozen`, so a stale lock fails the run rather than silently resolving something new. The stdlib-only scripts — the extension build, the policy renderer, the provenance writer, the target server — run under `uv run --no-project`, which skips the sync. The container sets `UV_PYTHON_DOWNLOADS=never` and uses its own `python3`: it holds no graph and no dependencies, so fetching an interpreter at build time would be a network reach a locked-down build host would fail on.
+
 ## Operating rules
 
 These cost hours to learn. Each one has a scar.

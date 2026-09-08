@@ -3,7 +3,11 @@
 # `make login` is the whole path from a clean checkout: install dependencies,
 # unpack the pinned extension, launch a browser with it already signed in.
 
-PYTHON        ?= python3
+# uv owns the Python side: it resolves the graph's dependencies from
+# pyproject.toml against uv.lock, and pins the interpreter via .python-version.
+# `uv run --no-project` is for the stdlib-only scripts, which need no sync.
+UV            ?= uv
+PY            ?= $(UV) run --no-project --quiet python
 NODE          ?= node
 NPM           ?= npm
 LOCK          ?= vendor/axe-devtools/axe-extension.lock.json
@@ -11,7 +15,6 @@ EXTENSION_DIR ?= build/axe-extension
 ENV_FILE      ?= .env
 
 # The v0 run: the MCP server that is the fixture, and the graph that drives it.
-VENV          ?= build/venv
 TARGET_DIR    ?= fixture/target
 TARGET_PORT   ?= 8731
 AXE_TARGET_URL ?= http://127.0.0.1:$(TARGET_PORT)/
@@ -60,7 +63,7 @@ node_modules: package.json
 extension: $(EXTENSION_DIR)/manifest.json
 
 $(EXTENSION_DIR)/manifest.json: $(LOCK) tools/build-axe-extension.py
-	$(PYTHON) tools/build-axe-extension.py --lock $(LOCK) --dest $(EXTENSION_DIR)
+	$(PY) tools/build-axe-extension.py --lock $(LOCK) --dest $(EXTENSION_DIR)
 
 ## env: check the environment the fixture needs
 env:
@@ -99,18 +102,16 @@ login-headed: install extension env
 keepalive: install extension env
 	$(LOAD_ENV) $(NODE) fixture/cli.js --extension=$(EXTENSION_DIR) --prove-keepalive
 
-## venv: create the Python environment the graph runs in
-venv: $(VENV)/bin/python
+## venv: sync the Python environment the graph runs in, from uv.lock
+venv: .venv/pyvenv.cfg
 
-$(VENV)/bin/python: graph/requirements.txt
-	$(PYTHON) -m venv $(VENV)
-	$(VENV)/bin/pip install --quiet --upgrade pip
-	$(VENV)/bin/pip install --quiet -r graph/requirements.txt
-	@touch $(VENV)/bin/python
+.venv/pyvenv.cfg: pyproject.toml uv.lock .python-version
+	$(UV) sync --frozen --quiet
+	@touch .venv/pyvenv.cfg
 
 ## serve-target: serve the bundled v0 page state, in the foreground
 serve-target:
-	$(PYTHON) -m http.server $(TARGET_PORT) --directory $(TARGET_DIR)
+	$(PY) -m http.server $(TARGET_PORT) --directory $(TARGET_DIR)
 
 ## mcp-server: run the MCP server alone, on stdio, for a client of your own
 mcp-server: install extension env
@@ -120,19 +121,19 @@ mcp-server: install extension env
 # it down afterwards, so the proof is one command. Point AXE_TARGET_URL at a real
 # page state to audit that instead; the local server is then unused.
 V0_RUN = \
-	$(PYTHON) -m http.server $(TARGET_PORT) --directory $(TARGET_DIR) >/dev/null 2>&1 & \
+	$(PY) -m http.server $(TARGET_PORT) --directory $(TARGET_DIR) >/dev/null 2>&1 & \
 	server=$$!; trap "kill $$server 2>/dev/null" EXIT INT TERM; sleep 1; \
 	AXE_EXTENSION_DIR=$(EXTENSION_DIR) AXE_TARGET_URL=$(AXE_TARGET_URL)
 
 ## v0: run both v0 units end to end against AXE_MODEL, and print the draft
 v0: install extension env venv model
 	@$(LOAD_ENV) $(V0_RUN) AXE_MODEL=$(AXE_MODEL) AXE_MODEL_KWARGS='$(AXE_MODEL_KWARGS)' \
-		$(VENV)/bin/python -m graph.run $(V0_ARGS)
+		$(UV) run --frozen --quiet python -m graph.run $(V0_ARGS)
 
 ## v0-scripted: the same run with a scripted leaf in place of the model
 v0-scripted: install extension env venv
 	@$(LOAD_ENV) $(V0_RUN) AXE_SCRIPT=$(TARGET_DIR)/answers.json \
-		$(VENV)/bin/python -m graph.run --leaf scripted $(V0_ARGS)
+		$(UV) run --frozen --quiet python -m graph.run --leaf scripted $(V0_ARGS)
 
 ## probe: survey what the axe panel offers as automation hooks (throwaway)
 probe: install extension env
@@ -164,7 +165,7 @@ check-mapping:
 
 ## crx-latest: download the current extension release, to pin a new version
 crx-latest:
-	$(PYTHON) tools/build-axe-extension.py --dest build/crx-check --save-crx build/axe-latest.crx
+	$(PY) tools/build-axe-extension.py --dest build/crx-check --save-crx build/axe-latest.crx
 	@echo
 	@echo "To pin it: move build/axe-latest.crx into vendor/axe-devtools/ named for its"
 	@echo "version, update crx/version/sha256/retrieved in $(LOCK), then run 'make extension'."

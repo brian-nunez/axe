@@ -140,7 +140,11 @@ uv run --no-project --python python3 /opt/axe/docker/record-provenance.py
 # server reads for itself. Without this the fixture silently audits its own
 # bundled target instead of the URL the caller asked for — a wrong answer that
 # looks like a right one, which is the worst shape of bug this project can have.
-set -- "$@" "--extension=${AXE_EXTENSION_DIR}" "--url=${AXE_TARGET_URL}"
+# Always headful. This container brings up Xvfb and noVNC so a human can watch
+# a run, and a headless browser draws nothing on that display — the console is
+# then a black screen that looks broken and is in fact empty. The server
+# defaults to headless, so the display owner is the one that has to say so.
+set -- "$@" "--extension=${AXE_EXTENSION_DIR}" "--url=${AXE_TARGET_URL}" "--headed"
 if [[ -n "${AXE_TEST_NAME:-}" ]]; then
     set -- "$@" "--name=${AXE_TEST_NAME}"
 fi

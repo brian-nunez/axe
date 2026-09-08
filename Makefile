@@ -148,6 +148,7 @@ v0-trace: install extension env venv model
 ## v0-docker: the same run, with the fixture as the built container
 v0-docker: image env venv model
 	@$(LOAD_ENV) AXE_FIXTURE=docker AXE_IMAGE=$(IMAGE) \
+		AXE_VNC_PASSWORD="$$AXE_VNC_PASSWORD" \
 		AXE_TARGET_URL=$(AXE_TARGET_URL) \
 		AXE_MODEL=$(AXE_MODEL) AXE_MODEL_KWARGS='$(AXE_MODEL_KWARGS)' \
 		$(UV) run --quiet python -m graph.run $(V0_ARGS)

@@ -53,6 +53,14 @@ def server_command() -> dict[str, Any]:
                 args += ["-e", f"{var}={os.environ[var]}"]
         # The target may be served on the host; a container reaches it by name.
         args += ["--add-host", "host.docker.internal:host-gateway"]
+        # The watch console is opt-in: publishing a port and running x11vnc
+        # costs nothing when nobody is looking, but a port bound by default is
+        # a surprise. Setting a password is the opt-in, and it binds to
+        # loopback so the console is never reachable off this machine.
+        if password := os.environ.get("AXE_VNC_PASSWORD"):
+            port = os.environ.get("AXE_VNC_PORT", "6080")
+            args += ["-e", f"AXE_VNC_PASSWORD={password}"]
+            args += ["-p", f"127.0.0.1:{port}:6080"]
         args += ["-e", f"AXE_IMAGE_REF={image}"]
         args += ["-v", f"{runs}:/opt/axe/runs"]
         args.append(image)

@@ -136,7 +136,14 @@ uv run --no-project --python python3 /opt/axe/docker/record-provenance.py
 # handed the extension path here so no caller has to know where the image put
 # it; the target page, the server and the run directory arrive through the
 # environment, which is the only channel a `docker run -i` caller has.
-set -- "$@" "--extension=${AXE_EXTENSION_DIR}"
+# The page state under audit is an argument, not an environment variable the
+# server reads for itself. Without this the fixture silently audits its own
+# bundled target instead of the URL the caller asked for — a wrong answer that
+# looks like a right one, which is the worst shape of bug this project can have.
+set -- "$@" "--extension=${AXE_EXTENSION_DIR}" "--url=${AXE_TARGET_URL}"
+if [[ -n "${AXE_TEST_NAME:-}" ]]; then
+    set -- "$@" "--name=${AXE_TEST_NAME}"
+fi
 
 log "fixture $*"
 if [[ "$(id -u)" -eq 0 ]]; then

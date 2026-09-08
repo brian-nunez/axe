@@ -46,12 +46,20 @@ def server_command() -> dict[str, Any]:
         runs = pathlib.Path(os.environ.get("AXE_RUNS_DIR", REPO / "build" / "runs")).resolve()
         runs.mkdir(parents=True, exist_ok=True)
         args = ["run", "--rm", "-i", "--env-file", str(REPO / ".env")]
-        for var in (
-            "AXE_TARGET_URL", "AXE_TEST_NAME", "AXE_HEADED",
-            "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY", "NODE_EXTRA_CA_CERTS",
-        ):
+        for var in ("AXE_TARGET_URL", "AXE_TEST_NAME", "AXE_HEADED",
+                    "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY"):
             if os.environ.get(var):
                 args += ["-e", f"{var}={os.environ[var]}"]
+
+        # A CA bundle is a host path, and passing the variable without the file
+        # gives Node a path it cannot read — which it reports as a warning and
+        # then proceeds without the certificate, so an internal TLS endpoint
+        # fails later and somewhere else. Mount the file, then point at it.
+        if bundle := os.environ.get("NODE_EXTRA_CA_CERTS"):
+            source = pathlib.Path(bundle).expanduser()
+            if source.is_file():
+                args += ["-v", f"{source.resolve()}:/etc/ssl/certs/corp-ca.pem:ro"]
+                args += ["-e", "NODE_EXTRA_CA_CERTS=/etc/ssl/certs/corp-ca.pem"]
         # The target may be served on the host; a container reaches it by name.
         args += ["--add-host", "host.docker.internal:host-gateway"]
         # The watch console is opt-in: publishing a port and running x11vnc

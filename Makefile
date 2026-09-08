@@ -4,7 +4,7 @@
 # unpack the pinned extension, launch a browser with it already signed in.
 
 # uv owns the Python side: it resolves the graph's dependencies from
-# pyproject.toml against uv.lock, and pins the interpreter via .python-version.
+# pyproject.toml against uv.lock, using the system interpreter.
 # `uv run --no-project` is for the stdlib-only scripts, which need no sync.
 UV            ?= uv
 PY            ?= $(UV) run --no-project --quiet python
@@ -105,7 +105,7 @@ keepalive: install extension env
 ## venv: sync the Python environment the graph runs in, from uv.lock
 venv: .venv/pyvenv.cfg
 
-.venv/pyvenv.cfg: pyproject.toml uv.lock .python-version
+.venv/pyvenv.cfg: pyproject.toml uv.lock
 	$(UV) sync --quiet
 	@touch .venv/pyvenv.cfg
 

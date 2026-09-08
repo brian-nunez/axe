@@ -25,3 +25,9 @@ dependencies = [
 # `graph/` is run as a module from the repo root, not installed. Without this
 # uv looks for a build backend and fails on a project that ships no package.
 package = false
+
+# Never fetch an interpreter. A pinned CPython build is a download from GitHub,
+# which a corporate proxy blocks — and nothing here needs a specific build, so
+# whatever python the machine already has is the right one.
+python-downloads = "never"
+python-preference = "only-system"
